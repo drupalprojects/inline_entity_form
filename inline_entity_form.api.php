@@ -31,7 +31,7 @@ function hook_inline_entity_form_entity_form_alter(&$entity_form, &$form_state) 
  *   The form state of the parent form.
  */
 function hook_inline_entity_form_reference_form_alter(&$reference_form, &$form_state) {
-  $reference_form['entity_id']['description'] = t('New autocomplete description');
+  $reference_form['entity_id']['#description'] = t('New autocomplete description');
 }
 
 /**
