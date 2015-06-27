@@ -595,6 +595,7 @@ function theme_inline_entity_form_entity_table($variables) {
   // Build an array of entity rows for the table.
   $rows = array();
   foreach (Element::children($form) as $key) {
+    /** @var \Drupal\Core\Entity\FieldableEntityInterface $entity */
     $entity = $form[$key]['#entity'];
     // Many field formatters (such as the ones for files and images) need
     // certain data that might be missing on unsaved entities because the field
@@ -619,7 +620,10 @@ function theme_inline_entity_form_entity_table($variables) {
 
     // Add fields that represent the entity.
     foreach ($fields as $field_name => $field) {
-      $data = $entity->get($field_name)->getString();
+      $data = '';
+      if ($entity->hasField($field_name)) {
+        $data = $entity->get($field_name)->getString();
+      }
       $cells[] = array('data' => $data, 'class' => array('inline-entity-form-' . $entity_type . '-' . $field_name));
     }
 
