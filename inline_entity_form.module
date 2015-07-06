@@ -52,30 +52,6 @@ function inline_entity_form_entity_type_build(array &$entity_types) {
 }
 
 /**
- * Implements hook_entity_property_info_alter().
- *
- * @todo Remove once Commerce 1.5 gets released with #1860248 committed.
- */
-function inline_entity_form_entity_property_info_alter(&$info) {
-  if (!empty($info['commerce_product'])) {
-    $properties = &$info['commerce_product']['properties'];
-    $properties['status']['options list'] = 'inline_entity_form_product_status_options_list';
-  }
-}
-
-/**
- * Returns the options list for the product status property.
- *
- * @todo Remove once Commerce 1.5 gets released with #1860248 committed.
- */
-function inline_entity_form_product_status_options_list() {
-  return array(
-    0 => t('Disabled'),
-    1 => t('Active'),
-  );
-}
-
-/**
  * Implements hook_entity_delete().
  *
  * Deletes referenced entities if needed.
@@ -120,31 +96,6 @@ function inline_entity_form_entity_delete(EntityInterface $entity) {
 }
 
 /**
- * Attaches theme specific CSS files.
- *
- * @param $theme_css
- *  An array of all CSS files that should be considered.
- * @param $css
- *   The $form['#attached']['css'] array, modified by reference.
- */
-function _inline_entity_form_attach_css($theme_css, &$css) {
-  if (empty($theme_css)) {
-    return;
-  }
-
-  // Add the base CSS file, if provided.
-  if (!empty($theme_css['base'])) {
-    $css[] = $theme_css['base'];
-  }
-
-  // Add the theme specific CSS file, if provided.
-  $theme_key = $GLOBALS['theme'];
-  if (!empty($theme_css[$theme_key])) {
-    $css[] = $theme_css[$theme_key];
-  }
-}
-
-/**
  * Implements hook_theme().
  */
 function inline_entity_form_theme() {
@@ -154,39 +105,6 @@ function inline_entity_form_theme() {
       'function' => 'theme_inline_entity_form_entity_table',
     ),
   );
-}
-
-/**
- * Implements hook_field_widget_settings_form().
- */
-function inline_entity_form_field_widget_settings_form($field, $instance) {
-  $widget = $instance['widget'];
-  $settings = $widget['settings'];
-  $controller = inline_entity_form_get_controller($instance);
-  // The current entity type is not supported, execution can't continue.
-  if (!$controller) {
-    return array();
-  }
-
-  $element = array();
-  // The fields are not editable from the UI for now.
-  $element['fields'] = array(
-    '#type' => 'value',
-    '#value' => $settings['fields'],
-  );
-
-  // Add entity type specific settings if they exist.
-  $settings_form = $controller->settingsForm($field, $instance);
-  if (!empty($settings_form)) {
-    $entity_info = \Drupal::entityManager()->getDefinition($controller->getEntityType());
-    $element['type_settings'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Inline Entity Form: %type', array('%type' => $entity_info['label'])),
-    );
-    $element['type_settings'] += $settings_form;
-  }
-
-  return $element;
 }
 
 /**
@@ -212,18 +130,6 @@ function inline_entity_form_field_widget_properties_alter(&$widget, $context) {
       $widget['module'] = $widget_type['module'];
       $widget['settings'] = $widget_type['settings'];
     }
-  }
-}
-
-/**
- * Updates entity weights based on their weights in the widget.
- */
-function inline_entity_form_update_row_weights($element, FormStateInterface $form_state, $form) {
-  $ief_id = $element['#ief_id'];
-  // Loop over the submitted delta values and update the weight of the entities
-  // in the form state.
-  foreach (Element::children($element['entities']) as $key) {
-    $form_state->set(['inline_entity_form', $ief_id, 'entities', $key, '_weight'], $element['entities'][$key]['delta']['#value']);
   }
 }
 
@@ -514,25 +420,6 @@ function inline_entity_form_cleanup_row_form_state($form, FormStateInterface $fo
 }
 
 /**
- * IEF widget #element_validate callback: Required field validation.
- */
-function inline_entity_form_required_field($element, FormStateInterface $form_state, $form) {
-  $ief_id = $element['#ief_id'];
-  $children = $form_state->get(['inline_entity_form', $ief_id, 'entities']);
-  $has_children = !empty($children);
-  $form = $form_state->get(['inline_entity_form', $ief_id, 'form']);
-  $form_open = !empty($form);
-  // If the add new / add existing form is open, its validation / submission
-  // will do the job instead (either by preventing the parent form submission
-  // or by adding a new referenced entity).
-  if (!$has_children && !$form_open) {
-    /** @var \Drupal\Core\Field\FieldDefinitionInterface $instance */
-    $instance = $form_state->get(['inline_entity_form', $ief_id, 'instance']);
-    $form_state->setError($element, t('!name field is required.', array('!name' => $instance->getLabel())));
-  }
-}
-
-/**
  * Returns an IEF widget nearest to the triggering element.
  */
 function inline_entity_form_get_element($form, FormStateInterface $form_state) {
@@ -672,13 +559,6 @@ function theme_inline_entity_form_entity_table($variables) {
 
     return $renderer->render($table);
   }
-}
-
-/**
- * Implements hook_field_widget_error().
- */
-function inline_entity_form_field_widget_error($element, $error) {
-  form_error($element, $error['message']);
 }
 
 /**

@@ -15,6 +15,7 @@ use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\Render\Element;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -29,173 +30,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   multiple_values = true
  * )
  */
-class InlineEntityFormMultiple extends WidgetBase implements ContainerFactoryPluginInterface {
-
-  /**
-   * The entity manager.
-   *
-   * @var \Drupal\Core\Entity\EntityManagerInterface
-   */
-  protected $entityManager;
-
-  /**
-   * The inline entity from handler.
-   *
-   * @var \Drupal\inline_entity_form\InlineEntityFormHandlerInterface
-   */
-  protected $iefHandler;
-
-  /**
-   * The inline entity form id.
-   *
-   * @var string
-   */
-  protected $iefId;
-
-  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, array $third_party_settings, EntityManagerInterface $entity_manager) {
-    parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $third_party_settings);
-    $this->entityManager = $entity_manager;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $plugin_id,
-      $plugin_definition,
-      $configuration['field_definition'],
-      $configuration['settings'],
-      $configuration['third_party_settings'],
-      $container->get('entity.manager')
-    );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function __sleep() {
-    $keys = array_diff(parent::__sleep(), array('iefHandler'));
-    return $keys;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function __wakeup() {
-    parent::__wakeup();
-    $this->initializeIefController();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function defaultSettings() {
-    return array(
-      "allow_existing" => FALSE,
-      "match_operator" => "CONTAINS",
-      "delete_references" => FALSE,
-      "override_labels" => FALSE,
-      "label_singular" => "",
-      "label_plural" => "",
-    );
-  }
-
-  /**
-   * Returns the settings form for the current entity type.
-   *
-   * The settings form is embedded into the IEF widget settings form.
-   * Settings are later injected into the controller through $this->settings.
-   *
-   * @param $field
-   *   The definition of the reference field used by IEF.
-   * @param $instance
-   *   The definition of the reference field instance.
-   */
-  public function settingsForm(array $form, FormStateInterface $form_state) {
-    $labels = $this->labels();
-    $states_prefix = 'instance[widget][settings][type_settings]';
-
-    $element['allow_existing'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Allow users to add existing @label.', array('@label' => $labels['plural'])),
-      '#default_value' => $this->settings['allow_existing'],
-    );
-    $element['match_operator'] = array(
-      '#type' => 'select',
-      '#title' => t('Autocomplete matching'),
-      '#default_value' => $this->settings['match_operator'],
-      '#options' => array(
-        'STARTS_WITH' => t('Starts with'),
-        'CONTAINS' => t('Contains'),
-      ),
-      '#description' => t('Select the method used to collect autocomplete suggestions. Note that <em>Contains</em> can cause performance issues on sites with thousands of nodes.'),
-      '#states' => array(
-        'visible' => array(
-          ':input[name="' . $states_prefix . '[allow_existing]"]' => array('checked' => TRUE),
-        ),
-      ),
-    );
-    // The single widget doesn't offer autocomplete functionality.
-    if ($form_state->get(['widget', 'type']) == 'inline_entity_form_single') {
-      $form['allow_existing']['#access'] = FALSE;
-      $form['match_operator']['#access'] = FALSE;
-    }
-
-    $element['delete_references'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Delete referenced @label when the parent entity is deleted.', array('@label' => $labels['plural'])),
-      '#default_value' => $this->settings['delete_references'],
-    );
-
-    $element['override_labels'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Override labels'),
-      '#default_value' => $this->settings['override_labels'],
-    );
-    $element['label_singular'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Singular label'),
-      '#default_value' => $this->settings['label_singular'],
-      '#states' => array(
-        'visible' => array(
-          ':input[name="' . $states_prefix . '[override_labels]"]' => array('checked' => TRUE),
-        ),
-      ),
-    );
-    $element['label_plural'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Plural label'),
-      '#default_value' => $this->settings['label_plural'],
-      '#states' => array(
-        'visible' => array(
-          ':input[name="' . $states_prefix . '[override_labels]"]' => array('checked' => TRUE),
-        ),
-      ),
-    );
-
-    return $element;
-  }
-
-  /**
-   * @param mixed $iefId
-   */
-  public function setIefId($iefId) {
-    $this->iefId = $iefId;
-  }
-
-  /**
-   * @return mixed
-   */
-  public function getIefId() {
-    return $this->iefId;
-  }
-
-  function initializeIefController() {
-    if (!isset($this->iefHandler)) {
-      $this->iefHandler = inline_entity_form_get_controller($this->fieldDefinition);
-    }
-  }
+class InlineEntityFormMultiple extends InlineEntityFormBase implements ContainerFactoryPluginInterface {
 
   /**
    * {@inheritdoc}
@@ -207,7 +42,6 @@ class InlineEntityFormMultiple extends WidgetBase implements ContainerFactoryPlu
 
     $settings = $this->getFieldSettings();
     $cardinality = $this->fieldDefinition->getFieldStorageDefinition()->getCardinality();
-    $this->initializeIefController();
 
     if (!$this->iefHandler) {
       return $element;
@@ -285,10 +119,11 @@ class InlineEntityFormMultiple extends WidgetBase implements ContainerFactoryPlu
     }
 
     // Build the "Multiple value" widget.
-    $element['#element_validate'] = array('inline_entity_form_update_row_weights');
+    // TODO - does this belong in #element_validate?
+    $element['#element_validate'] =[[get_class($this), 'updateRowWeights']];
     // Add the required element marker & validation.
     if ($element['#required']) {
-      $element['#element_validate'][] = 'inline_entity_form_required_field';
+      $element['#element_validate'][] = [get_class($this), 'requiredField'];
     }
 
     $element['entities'] = array(
@@ -630,7 +465,6 @@ class InlineEntityFormMultiple extends WidgetBase implements ContainerFactoryPlu
       return;
     }
 
-    $this->initializeIefController();
     $field_name = $this->fieldDefinition->getName();
 
     // Extract the values from $form_state->getValues().
@@ -949,33 +783,6 @@ class InlineEntityFormMultiple extends WidgetBase implements ContainerFactoryPlu
   }
 
   /**
-   * Returns an array of entity type labels (singular, plural) fit to be
-   * included in the UI text.
-   *
-   * @TODO - This could be shared with InlineEntityFormSingle. Let's see if we
-   * base one of the widgets out of the other one. We could use a trait if that
-   * won't be possible.
-   *
-   * @return array
-   *   Array containing two values:
-   *     - singular: label for singular form,
-   *     - plural: label for plural form.
-   */
-  protected function labels() {
-    // The admin has specified the exact labels that should be used.
-    if ($this->settings['override_labels']) {
-      return [
-        'singular' => $this->settings['label_singular'],
-        'plural' => $this->settings['label_plural'],
-      ];
-    }
-    else {
-      $this->initializeIefController();
-      return $this->iefHandler->labels();
-    }
-  }
-
-  /**
    * Determines bundle to be used when creating entity.
    *
    * @param FormStateInterface $form_state
@@ -1038,4 +845,37 @@ class InlineEntityFormMultiple extends WidgetBase implements ContainerFactoryPlu
       $form_state->set(['inline_entity_form', $ief_id, 'entities'], $entities);
     }
   }
+
+  /**
+   * Updates entity weights based on their weights in the widget.
+   */
+  public static function updateRowWeights($element, FormStateInterface $form_state, $form) {
+    $ief_id = $element['#ief_id'];
+
+    // Loop over the submitted delta values and update the weight of the entities
+    // in the form state.
+    foreach (Element::children($element['entities']) as $key) {
+      $form_state->set(['inline_entity_form', $ief_id, 'entities', $key, '_weight'], $element['entities'][$key]['delta']['#value']);
+    }
+  }
+
+  /**
+   * IEF widget #element_validate callback: Required field validation.
+   */
+  public static function requiredField($element, FormStateInterface $form_state, $form) {
+    $ief_id = $element['#ief_id'];
+    $children = $form_state->get(['inline_entity_form', $ief_id, 'entities']);
+    $has_children = !empty($children);
+    $form = $form_state->get(['inline_entity_form', $ief_id, 'form']);
+    $form_open = !empty($form);
+    // If the add new / add existing form is open, its validation / submission
+    // will do the job instead (either by preventing the parent form submission
+    // or by adding a new referenced entity).
+    if (!$has_children && !$form_open) {
+      /** @var \Drupal\Core\Field\FieldDefinitionInterface $instance */
+      $instance = $form_state->get(['inline_entity_form', $ief_id, 'instance']);
+      $form_state->setError($element, t('!name field is required.', array('!name' => $instance->getLabel())));
+    }
+  }
+
 }
