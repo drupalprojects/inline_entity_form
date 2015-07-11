@@ -145,10 +145,7 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
     \Drupal::moduleHandler()->alter('inline_entity_form_table_fields', $fields, $context);
     $element['entities']['#table_fields'] = $fields;
 
-    $entities_count = $items_count = count($entities);
-    if ($items_count < 10) {
-      $items_count = 10;
-    }
+    $weight_delta = max(ceil(count($entities) * 1.2), 50);
     foreach ($entities as $key => $value) {
       if (!isset($value['entity'])) {
         continue;
@@ -231,7 +228,7 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
         $row['title'] = array();
         $row['delta'] = array(
           '#type' => 'weight',
-          '#delta' => $items_count,
+          '#delta' => $weight_delta,
           '#default_value' => $value['_weight'],
           '#attributes' => array('class' => array('ief-entity-delta')),
         );
