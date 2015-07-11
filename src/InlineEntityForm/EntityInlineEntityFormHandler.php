@@ -6,6 +6,7 @@
 
 namespace Drupal\inline_entity_form\InlineEntityForm;
 
+use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFormInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
@@ -187,7 +188,7 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
       $controller = \Drupal::entityManager()
         ->getFormObject($entity->getEntityTypeId(), $operation);
       $child_form_state = static::buildChildFormState($controller, $form_state, $entity, $operation);
-      $controller->validate($entity_form, $child_form_state);
+      $controller->validateForm($entity_form, $child_form_state);
 
       foreach($child_form_state->getErrors() as $name => $message) {
         $form_state->setErrorByName($name, $message);
@@ -224,6 +225,11 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
     $child_form['#ief_parents'] = $entity_form['#parents'];
 
     $controller->submitForm($child_form, $child_form_state);
+    if ($controller->getEntity() instanceof ContentEntityInterface) {
+      // Entity was validated in entityFormValidate(). This will prevent validation
+      // exception from being thrown.
+      $controller->getEntity()->setValidationRequired(FALSE);
+    }
     $controller->save($child_form, $child_form_state);
     $entity_form['#entity'] = $controller->getEntity();
 
