@@ -28,7 +28,7 @@ class NodeInlineEntityFormHandler extends EntityInlineEntityFormHandler {
   public function tableFields($bundles) {
     $fields = parent::tableFields($bundles);
     $fields['status'] = [
-      'type' => 'property',
+      'type' => 'field',
       'label' => t('Status'),
       'weight' => 100,
     ];

@@ -59,11 +59,18 @@ function hook_inline_entity_form_settings_alter(&$settings, $field, $instance) {
 /**
  * Alter the fields used to represent an entity in the IEF table.
  *
- * The fields can be either Field API fields or properties defined through
- * hook_entity_property_info().
- *
  * @param $fields
- *   The fields to alter.
+ *   The table fields to alter. Each field is represented by an associative
+ *   array containing the following keys:
+ *   - type: either 'field' or 'callback' to specify how the data is defined on
+ *     the related entity.
+ *   - label: the title of the table field's column in the IEF table.
+ *   - weight: the sort order of the column in the IEF table.
+ *   - callback: for 'callback' type table fields, a callable that returns a
+ *     renderable array.
+ *   - callback_arguments: (optional) an array of additional arguments to pass
+ *     to the callback. The entity and the theme variables are always passed as
+ *     the first two arguments.
  * @param $context
  *   An array with the following keys:
  *   - parent_entity_type: The type of the parent entity.

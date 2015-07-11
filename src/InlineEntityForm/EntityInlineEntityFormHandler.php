@@ -105,7 +105,7 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
     if ($info->hasKey('label')) {
       $label_key = $info->getKey('label');
       $fields[$label_key] = array(
-        'type' => 'property',
+        'type' => 'field',
         'label' => $metadata ? $metadata[$label_key]['label'] : t('Label'),
         'weight' => 1,
       );
@@ -113,7 +113,7 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
     else {
       $id_key = $info->getKey('id');
       $fields[$id_key] = array(
-        'type' => 'property',
+        'type' => 'field',
         'label' => $metadata ? $metadata[$id_key]['label'] : t('ID'),
         'weight' => 1,
       );
@@ -121,7 +121,7 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
     if (count($bundles) > 1) {
       $bundle_key = $info->getKey('bundle');
       $fields[$bundle_key] = array(
-        'type' => 'property',
+        'type' => 'field',
         'label' => $metadata ? $metadata[$bundle_key]['label'] : t('Type'),
         'weight' => 2,
       );
