@@ -5,19 +5,22 @@
  */
 
 namespace Drupal\inline_entity_form\InlineEntityForm;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Node inline form handler.
  */
 class NodeInlineEntityFormHandler extends EntityInlineEntityFormHandler {
 
+  use StringTranslationTrait;
+
   /**
    * {@inheritdoc}
    */
   public function labels() {
     $labels = [
-      'singular' => t('node'),
-      'plural' => t('nodes'),
+      'singular' => $this->t('node'),
+      'plural' => $this->t('nodes'),
     ];
     return $labels;
   }
@@ -27,9 +30,10 @@ class NodeInlineEntityFormHandler extends EntityInlineEntityFormHandler {
    */
   public function tableFields($bundles) {
     $fields = parent::tableFields($bundles);
+
     $fields['status'] = [
       'type' => 'field',
-      'label' => t('Status'),
+      'label' => $this->t('Status'),
       'weight' => 100,
     ];
 
