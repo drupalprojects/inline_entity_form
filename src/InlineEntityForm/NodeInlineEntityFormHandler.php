@@ -35,6 +35,13 @@ class NodeInlineEntityFormHandler extends EntityInlineEntityFormHandler {
       'type' => 'field',
       'label' => $this->t('Status'),
       'weight' => 100,
+      'display_options' => array(
+        'settings' => array(
+          'format' => 'custom',
+          'format_custom_false' => $this->t('Unpublished'),
+          'format_custom_true' => $this->t('Published'),
+        ),
+      ),
     ];
 
     return $fields;

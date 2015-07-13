@@ -66,6 +66,9 @@ function hook_inline_entity_form_settings_alter(&$settings, $field, $instance) {
  *     the related entity.
  *   - label: the title of the table field's column in the IEF table.
  *   - weight: the sort order of the column in the IEF table.
+ *   - display_options: (optional) used for 'field' type table fields, an array
+ *     display settings. See EntityViewBuilderInterface::viewField() for more
+ *     information.
  *   - callback: for 'callback' type table fields, a callable that returns a
  *     renderable array.
  *   - callback_arguments: (optional) an array of additional arguments to pass
