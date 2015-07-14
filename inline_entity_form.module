@@ -52,50 +52,6 @@ function inline_entity_form_entity_type_build(array &$entity_types) {
 }
 
 /**
- * Implements hook_entity_delete().
- *
- * Deletes referenced entities if needed.
- *
- * @todo Remove when there's a stable contrib module for this.
- */
-function inline_entity_form_entity_delete(EntityInterface $entity) {
-  return;
-
-  $entity_info = \Drupal::entityManager()->getDefinition($type);
-  list(,, $bundle) = entity_extract_ids($type, $entity);
-  foreach (field_info_instances($type, $bundle) as $field_name => $instance) {
-    if (strpos($instance['widget']['type'], 'inline_entity_form') === 0) {
-      $widget = \Drupal::entityManager()
-        ->getStorage('entity_form_display')
-        ->load($entity->getEntityTypeId() . '.' . $entity->bundle() . '.default')
-        ->getComponent($field_name);
-
-      $controller = inline_entity_form_get_controller($instance);
-
-      // The controller specified that referenced entities should be deleted.
-      if ($controller && $widget['settings']['delete_references']) {
-        $items = field_get_items($type, $entity, $field_name);
-        if ($items) {
-          $field = field_info_field($field_name);
-          $ief_settings = inline_entity_form_settings($field, $instance);
-
-          $ids = array();
-          foreach ($items as $item) {
-            $ids[] = $item[$ief_settings['column']];
-          }
-          $context = array(
-            'parent_entity_type' => $type,
-            'parent_entity' => $entity,
-          );
-
-          $controller->delete($ids, $context);
-        }
-      }
-    }
-  }
-}
-
-/**
  * Implements hook_theme().
  */
 function inline_entity_form_theme() {

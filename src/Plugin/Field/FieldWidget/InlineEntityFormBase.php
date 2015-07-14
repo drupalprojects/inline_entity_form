@@ -141,7 +141,6 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
     return [
       "allow_existing" => FALSE,
       "match_operator" => "CONTAINS",
-      "delete_references" => FALSE,
       "override_labels" => FALSE,
       "label_singular" => "",
       "label_plural" => "",
@@ -177,12 +176,6 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       $form['allow_existing']['#access'] = FALSE;
       $form['match_operator']['#access'] = FALSE;
     }
-
-    $element['delete_references'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Delete referenced @label when the parent entity is deleted.', array('@label' => $labels['plural'])),
-      '#default_value' => $this->settings['delete_references'],
-    );
 
     $element['override_labels'] = array(
       '#type' => 'checkbox',
@@ -229,7 +222,6 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       $summary[] = t('Existing entities can not be referenced.');
     }
 
-    $summary[] = $this->settings['delete_references'] ? t('Referenced entities are deleted when reference is lost.') : t('Referenced entities are persisted when reference is lost.');
     if ($this->settings['override_labels']) {
       $summary[] = t(
         'Overriden labels are used: %singular and %plural',

@@ -10,9 +10,6 @@ field.widget.settings.inline_entity_form_single:
     match_operator:
       type: string
       label: "Match operator"
-    delete_references:
-      type: boolean
-      label: "Delete references"
     override_labels:
       type: boolean
       label: "Override labels"
@@ -33,9 +30,6 @@ field.widget.settings.inline_entity_form_multiple:
     match_operator:
       type: string
       label: "Match operator"
-    delete_references:
-      type: boolean
-      label: "Delete references"
     override_labels:
       type: boolean
       label: "Override labels"
