@@ -281,8 +281,7 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
     $child_form_state->setUserInput($form_state->getUserInput());
     $child_form_state->setValues($form_state->getValues());
     $child_form_state->setStorage($form_state->getStorage());
-
-    $child_form_state->set('form_display', entity_load('entity_form_display', $entity->getEntityTypeId() . '.' . $entity->bundle() . '.' . $operation));
+    $child_form_state->set('form_display', entity_get_form_display($entity->getEntityTypeId(), $entity->bundle(), $operation));
 
     // Since some of the submit handlers are run, redirects need to be disabled.
     $child_form_state->disableRedirect();
