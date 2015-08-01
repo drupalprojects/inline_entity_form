@@ -132,8 +132,13 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
       '#entity_type' => $settings['target_type'],
     );
 
-    // Get the fields that should be displayed in the table.
     $target_bundles = isset($settings['handler_settings']['target_bundles']) ? $settings['handler_settings']['target_bundles'] : array();
+    // If no target bundles have been specified then all are available.
+    if (!$target_bundles) {
+      $target_bundles = array_keys($this->entityManager->getBundleInfo($settings['target_type']));
+    }
+
+    // Get the fields that should be displayed in the table.
     $fields = $this->iefHandler->tableFields($target_bundles);
     $context = array(
       'parent_entity_type' => $this->fieldDefinition->getTargetEntityTypeId(),
@@ -316,6 +321,7 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
 
     // If no form is open, show buttons that open one.
     $inline_entity_form_form = $form_state->get(['inline_entity_form', $this->getIefId(), 'form']);
+
     if (empty($inline_entity_form_form)) {
       $element['actions'] = array(
         '#attributes' => array('class' => array('container-inline')),
@@ -799,7 +805,12 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
       return $ief_settings['bundle'];
     }
     else {
-      return reset($ief_settings['settings']['handler_settings']['target_bundles']);
+      $target_bundles = $ief_settings['settings']['handler_settings']['target_bundles'];
+      // If no target bundles have been specified then all are available.
+      if (!$target_bundles) {
+        $target_bundles = $this->entityManager->getBundleInfo($ief_settings['settings']['target_type']);
+      }
+      return reset($target_bundles);
     }
   }
 
