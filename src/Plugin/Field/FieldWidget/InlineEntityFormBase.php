@@ -135,6 +135,25 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   }
 
   /**
+   * Gets the target bundles for the current field.
+   *
+   * @return string[]
+   *   A list of bundles.
+   */
+  protected function getTargetBundles() {
+    $settings = $this->getFieldSettings();
+    if (!empty($settings['handler_settings']['target_bundles'])) {
+      $target_bundles = array_keys($settings['handler_settings']['target_bundles']);
+    }
+    else {
+      // If no target bundles have been specified then all are available.
+      $target_bundles = array_keys($this->entityManager->getBundleInfo($settings['target_type']));
+    }
+
+    return $target_bundles;
+  }
+
+  /**
    * {@inheritdoc}
    */
   public static function defaultSettings() {
