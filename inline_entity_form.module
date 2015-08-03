@@ -378,18 +378,12 @@ function theme_inline_entity_form_entity_table($variables) {
   $form = $variables['form'];
   $entity_type = $form['#entity_type'];
   $fields = $form['#table_fields'];
+  $has_tabledrag = inline_entity_form_has_tabledrag($form);
   // Sort the fields by weight.
   uasort($fields, array(
     '\Drupal\Component\Utility\SortArray',
     'sortByWeightElement'
   ));
-  // If one of the rows is in form context, disable tabledrag.
-  $has_tabledrag = TRUE;
-  foreach (Element::children($form) as $key) {
-    if (!empty($form[$key]['form'])) {
-      $has_tabledrag = FALSE;
-    }
-  }
 
   $header = array();
   if ($has_tabledrag) {
@@ -506,6 +500,31 @@ function theme_inline_entity_form_entity_table($variables) {
 
     return $renderer->render($table);
   }
+}
+
+/**
+ * Checks whether tabledrag should be enabled for the given table.
+ *
+ * @param $element
+ *   The form element representing the IEF table.
+ *
+ * @return
+ *   TRUE if tabledrag should be enabled, FALSE otherwise.
+ */
+function inline_entity_form_has_tabledrag($element) {
+  $children = Element::children($element);
+  // If there is only one row, disable tabledrag.
+  if (count($children) == 1) {
+    return FALSE;
+  }
+  // If one of the rows is in form context, disable tabledrag.
+  foreach ($children as $key) {
+    if (!empty($element[$key]['form'])) {
+      return FALSE;
+    }
+  }
+
+  return TRUE;
 }
 
 /**
