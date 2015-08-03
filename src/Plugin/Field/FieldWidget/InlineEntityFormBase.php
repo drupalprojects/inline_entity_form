@@ -143,7 +143,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   protected function getTargetBundles() {
     $settings = $this->getFieldSettings();
     if (!empty($settings['handler_settings']['target_bundles'])) {
-      $target_bundles = array_keys($settings['handler_settings']['target_bundles']);
+      $target_bundles = array_values($settings['handler_settings']['target_bundles']);
     }
     else {
       // If no target bundles have been specified then all are available.
