@@ -171,7 +171,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    */
   public function settingsForm(array $form, FormStateInterface $form_state) {
     $labels = $this->labels();
-    $states_prefix = 'instance[widget][settings][type_settings]';
+    $states_prefix = 'fields[' . $this->fieldDefinition->getName() . '][settings_edit_form][settings]';
 
     $element['allow_existing'] = array(
       '#type' => 'checkbox',
