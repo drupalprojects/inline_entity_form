@@ -113,15 +113,11 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
     if ($this->isDefaultValueWidget($form_state)) {
       return $element;
     }
-
-    $settings = $this->getFieldSettings();
-    $cardinality = $this->fieldDefinition->getFieldStorageDefinition()->getCardinality();
-
     if (!$this->iefHandler) {
       return $element;
     }
 
-    // Get the entity type labels for the UI strings.
+    $settings = $this->getFieldSettings();
     $labels = $this->labels();
 
     // Build a parents array for this element's values in the form.
@@ -351,6 +347,8 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
       }
     }
 
+    $entities_count = count($entities);
+    $cardinality = $this->fieldDefinition->getFieldStorageDefinition()->getCardinality();
     if ($cardinality > 1) {
       // Add a visual cue of cardinality count.
       $message = t('You have added @entities_count out of @cardinality_count allowed @label.', array(
