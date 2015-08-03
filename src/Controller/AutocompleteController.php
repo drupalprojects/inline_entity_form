@@ -62,23 +62,18 @@ class AutocompleteController implements ContainerInjectionInterface {
    */
   public function autocomplete($entity_type_id, $field_name, $bundle, Request $request) {
     $string = $request->query->get('q');
-
     $fields = $this->entityManager->getFieldDefinitions($entity_type_id, $bundle);
-
-    $field = $fields[$field_name];
-    $storage = $field->getFieldStorageDefinition();
-    $controller = inline_entity_form_get_controller($field);
     $widget = $this->entityManager
       ->getStorage('entity_form_display')
       ->load($entity_type_id . '.' . $bundle . '.default')
       ->getComponent($field_name);
-
-    // The current entity type is not supported, or the string is empty.
+    // The path was passed invalid parameters, or the string is empty.
     // strlen() is used instead of empty() since '0' is a valid value.
-    if (!$field || !$storage || !$controller || !strlen($string)) {
+    if (!isset($fields[$field_name]) || !$widget || !strlen($string)) {
       throw new AccessDeniedHttpException();
     }
 
+    $field = $fields[$field_name];
     $results = array();
     if ($field->getType() == 'entity_reference') {
       /** @var \Drupal\Core\Entity\EntityReferenceSelection\SelectionInterface $handler */
