@@ -38,6 +38,7 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
   public static function defaultSettings() {
     $defaults = parent::defaultSettings();
     $defaults += [
+      'allow_new' => TRUE,
       'allow_existing' => FALSE,
       'match_operator' => 'CONTAINS',
     ];
@@ -53,6 +54,11 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
 
     $labels = $this->labels();
     $states_prefix = 'fields[' . $this->fieldDefinition->getName() . '][settings_edit_form][settings]';
+    $element['allow_new'] = [
+      '#type' => 'checkbox',
+      '#title' => t('Allow users to add new @label.', array('@label' => $labels['plural'])),
+      '#default_value' => $this->settings['allow_new'],
+    ];
     $element['allow_existing'] = [
       '#type' => 'checkbox',
       '#title' => t('Allow users to add existing @label.', ['@label' => $labels['plural']]),
@@ -79,15 +85,24 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
    */
   public function settingsSummary() {
     $summary = parent::settingsSummary();
-    $options = $this->getMatchOperatorOptions();
-    if ($this->settings['allow_existing']) {
-      $summary[] = t(
-        'Existing entities can be referenced and are matched with the %operator operator.',
-        ['%operator' => $options[$this->settings['match_operator']]]
-      );
+    $labels = $this->labels();
+
+    if ($this->settings['allow_new']) {
+      $summary[] = t('New @label can be added.', ['@label' => $labels['plural']]);
     }
     else {
-      $summary[] = t('Existing entities can not be referenced.');
+      $summary[] = t('New @label can not be created.', ['@label' => $labels['plural']]);
+    }
+
+    $match_operator_options = $this->getMatchOperatorOptions();
+    if ($this->settings['allow_existing']) {
+      $summary[] = t('Existing @label can be referenced and are matched with the %operator operator.', [
+        '@label' => $labels['plural'],
+        '%operator' => $match_operator_options[$this->settings['match_operator']],
+      ]);
+    }
+    else {
+      $summary[] = t('Existing @label can not be referenced.', ['@label' => $labels['plural']]);
     }
 
     return $summary;
@@ -366,11 +381,15 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
     }
 
     $target_bundles_count = count($target_bundles);
+    $hide_cancel = FALSE;
 
-    // Try to open the add form (if it's the only allowed action, the
-    // field is required and empty, and there's only one allowed bundle).
-    if (empty($entities)) {
-      if ($target_bundles_count == 1 && $this->fieldDefinition->isRequired() && !$this->settings['allow_existing']) {
+    // If the field is required and empty try to open one of the forms.
+    if (empty($entities) && $this->fieldDefinition->isRequired()) {
+      if ($this->settings['allow_existing'] && !$this->settings['allow_new']) {
+        $form_state->set(['inline_entity_form', $this->getIefId(), 'form'], 'ief_add_existing');
+        $hide_cancel = TRUE;
+      }
+      elseif ($target_bundles_count == 1 && $this->settings['allow_new'] && !$this->settings['allow_existing']) {
         $bundle = reset($target_bundles);
 
         // The parent entity type and bundle must not be the same as the inline
@@ -382,14 +401,15 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
           $form_state->set(['inline_entity_form', $this->getIefId(), 'form settings'], array(
             'bundle' => $bundle,
           ));
+          $hide_cancel = TRUE;
         }
       }
     }
 
     // If no form is open, show buttons that open one.
-    $inline_entity_form_form = $form_state->get(['inline_entity_form', $this->getIefId(), 'form']);
+    $open_form = $form_state->get(['inline_entity_form', $this->getIefId(), 'form']);
 
-    if (empty($inline_entity_form_form)) {
+    if (empty($open_form)) {
       $element['actions'] = array(
         '#attributes' => array('class' => array('container-inline')),
         '#type' => 'container',
@@ -397,7 +417,7 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
       );
 
       // The user is allowed to create an entity of at least one bundle.
-      if ($target_bundles_count) {
+      if ($this->settings['allow_new'] && $target_bundles_count) {
         // Let the user select the bundle, if multiple are available.
         if ($target_bundles_count > 1) {
           $bundles = array();
@@ -484,15 +504,6 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
             ],
           ],
         ];
-
-        // Hide the cancel button if the reference field is required but
-        // contains no values. That way the user is forced to create an entity.
-        if (!$this->settings['allow_existing'] && $this->fieldDefinition->isRequired()
-          && empty($entities)
-          && $target_bundles_count == 1
-        ) {
-          $element['form']['inline_entity_form']['#process'][] = [get_class($this), 'hideCancel'];
-        }
       }
       elseif ($form_state->get(['inline_entity_form', $this->getIefId(), 'form']) == 'ief_add_existing') {
         $element['form'] = array(
@@ -514,6 +525,18 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
         );
 
         $element['form'] += inline_entity_form_reference_form($this->iefHandler, $element['form'], $form_state);
+      }
+
+      // Pre-opened forms can't be closed in order to force the user to
+      // add / reference an entity.
+      if ($hide_cancel) {
+        if ($open_form == 'add') {
+          $process_element = &$element['form']['inline_entity_form'];
+        }
+        elseif ($open_form == 'ief_add_existing') {
+          $process_element = &$element['form'];
+        }
+        $process_element['#process'][] = [get_class($this), 'hideCancel'];
       }
 
       // No entities have been added. Remove the outer fieldset to reduce
@@ -718,7 +741,14 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
    *   Form array structure.
    */
   public static function hideCancel($element) {
-    $element['actions']['ief_add_cancel']['#access'] = FALSE;
+    // @todo Name both buttons the same and simplify this logic.
+    if (isset($element['actions']['ief_add_cancel'])) {
+      $element['actions']['ief_add_cancel']['#access'] = FALSE;
+    }
+    elseif (isset($element['actions']['ief_reference_cancel'])) {
+      $element['actions']['ief_reference_cancel']['#access'] = FALSE;
+    }
+
     return $element;
   }
 

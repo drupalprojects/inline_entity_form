@@ -27,9 +27,12 @@ field.widget.settings.inline_entity_form_multiple:
     label_plural:
       type: string
       label: "Label (plural)"
+    allow_new:
+      type: boolean
+      label: "Allow new"
     allow_existing:
       type: boolean
-      label: "ALlow existing"
+      label: "Allow existing"
     match_operator:
       type: string
       label: "Match operator"
