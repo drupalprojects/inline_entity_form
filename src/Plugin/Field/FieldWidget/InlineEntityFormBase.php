@@ -41,13 +41,6 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   protected $iefHandler;
 
   /**
-   * Options for match operator.
-   *
-   * @var array
-   */
-  protected $matchOperatorOptions;
-
-  /**
    * Constructs an InlineEntityFormBase object.
    *
    * @param array $plugin_id
@@ -66,10 +59,6 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, array $third_party_settings, EntityManagerInterface $entity_manager) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $third_party_settings);
     $this->entityManager = $entity_manager;
-    $this->matchOperatorOptions = [
-      'STARTS_WITH' => t('Starts with'),
-      'CONTAINS' => t('Contains'),
-    ];
 
     $this->initializeIefController();
   }
@@ -158,11 +147,9 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    */
   public static function defaultSettings() {
     return [
-      "allow_existing" => FALSE,
-      "match_operator" => "CONTAINS",
-      "override_labels" => FALSE,
-      "label_singular" => "",
-      "label_plural" => "",
+      'override_labels' => FALSE,
+      'label_singular' => '',
+      'label_plural' => '',
     ];
   }
 
@@ -170,54 +157,30 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    * {@inheritdoc}
    */
   public function settingsForm(array $form, FormStateInterface $form_state) {
-    $labels = $this->labels();
     $states_prefix = 'fields[' . $this->fieldDefinition->getName() . '][settings_edit_form][settings]';
-
-    $element['allow_existing'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Allow users to add existing @label.', array('@label' => $labels['plural'])),
-      '#default_value' => $this->settings['allow_existing'],
-    );
-    $element['match_operator'] = array(
-      '#type' => 'select',
-      '#title' => t('Autocomplete matching'),
-      '#default_value' => $this->settings['match_operator'],
-      '#options' => $this->matchOperatorOptions,
-      '#description' => t('Select the method used to collect autocomplete suggestions. Note that <em>Contains</em> can cause performance issues on sites with thousands of nodes.'),
-      '#states' => array(
-        'visible' => array(
-          ':input[name="' . $states_prefix . '[allow_existing]"]' => array('checked' => TRUE),
-        ),
-      ),
-    );
-    // The single widget doesn't offer autocomplete functionality.
-    if ($form_state->get(['widget', 'type']) == 'inline_entity_form_single') {
-      $form['allow_existing']['#access'] = FALSE;
-      $form['match_operator']['#access'] = FALSE;
-    }
-
-    $element['override_labels'] = array(
+    $element = [];
+    $element['override_labels'] = [
       '#type' => 'checkbox',
       '#title' => t('Override labels'),
       '#default_value' => $this->settings['override_labels'],
-    );
-    $element['label_singular'] = array(
+    ];
+    $element['label_singular'] = [
       '#type' => 'textfield',
       '#title' => t('Singular label'),
       '#default_value' => $this->settings['label_singular'],
-      '#states' => array(
-        'visible' => array(
-          ':input[name="' . $states_prefix . '[override_labels]"]' => array('checked' => TRUE),
-        ),
-      ),
-    );
+      '#states' => [
+        'visible' => [
+          ':input[name="' . $states_prefix . '[override_labels]"]' => ['checked' => TRUE],
+        ],
+      ],
+    ];
     $element['label_plural'] = array(
       '#type' => 'textfield',
       '#title' => t('Plural label'),
       '#default_value' => $this->settings['label_plural'],
       '#states' => array(
         'visible' => array(
-          ':input[name="' . $states_prefix . '[override_labels]"]' => array('checked' => TRUE),
+          ':input[name="' . $states_prefix . '[override_labels]"]' => ['checked' => TRUE],
         ),
       ),
     );
@@ -230,17 +193,6 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    */
   public function settingsSummary() {
     $summary = [];
-
-    if ($this->settings['allow_existing']) {
-      $summary[] = t(
-        'Existing entities can be referenced and are matched with %operator operator.',
-        ['%operator' => $this->matchOperatorOptions[$this->settings['match_operator']]]
-      );
-    }
-    else {
-      $summary[] = t('Existing entities can not be referenced.');
-    }
-
     if ($this->settings['override_labels']) {
       $summary[] = t(
         'Overriden labels are used: %singular and %plural',

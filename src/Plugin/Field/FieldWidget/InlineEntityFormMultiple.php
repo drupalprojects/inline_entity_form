@@ -35,6 +35,80 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
   /**
    * {@inheritdoc}
    */
+  public static function defaultSettings() {
+    $defaults = parent::defaultSettings();
+    $defaults += [
+      'allow_existing' => FALSE,
+      'match_operator' => 'CONTAINS',
+    ];
+
+    return $defaults;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function settingsForm(array $form, FormStateInterface $form_state) {
+    $element = parent::settingsForm($form, $form_state);
+
+    $labels = $this->labels();
+    $states_prefix = 'fields[' . $this->fieldDefinition->getName() . '][settings_edit_form][settings]';
+    $element['allow_existing'] = [
+      '#type' => 'checkbox',
+      '#title' => t('Allow users to add existing @label.', ['@label' => $labels['plural']]),
+      '#default_value' => $this->settings['allow_existing'],
+    ];
+    $element['match_operator'] = [
+      '#type' => 'select',
+      '#title' => t('Autocomplete matching'),
+      '#default_value' => $this->settings['match_operator'],
+      '#options' => $this->getMatchOperatorOptions(),
+      '#description' => t('Select the method used to collect autocomplete suggestions. Note that <em>Contains</em> can cause performance issues on sites with thousands of nodes.'),
+      '#states' => [
+        'visible' => [
+          ':input[name="' . $states_prefix . '[allow_existing]"]' => array('checked' => TRUE),
+        ],
+      ],
+    ];
+
+    return $element;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function settingsSummary() {
+    $summary = parent::settingsSummary();
+    $options = $this->getMatchOperatorOptions();
+    if ($this->settings['allow_existing']) {
+      $summary[] = t(
+        'Existing entities can be referenced and are matched with the %operator operator.',
+        ['%operator' => $options[$this->settings['match_operator']]]
+      );
+    }
+    else {
+      $summary[] = t('Existing entities can not be referenced.');
+    }
+
+    return $summary;
+  }
+
+  /**
+   * Returns the options for the match operator.
+   *
+   * @return array
+   *   List of options.
+   */
+  protected function getMatchOperatorOptions() {
+    return [
+      'STARTS_WITH' => t('Starts with'),
+      'CONTAINS' => t('Contains'),
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state) {
     if ($this->isDefaultValueWidget($form_state)) {
       return $element;
