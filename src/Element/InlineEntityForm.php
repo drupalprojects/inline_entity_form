@@ -144,14 +144,24 @@ class InlineEntityForm extends RenderElement {
     $submit = array_merge([[get_called_class(), 'triggerIefSubmit']], $complete_form['#submit']);
 
     if (!empty($complete_form['submit'])) {
-      $complete_form['submit']['#submit'] = empty($complete_form['submit']['#submit']) ? $submit : array_merge($submit, $complete_form['submit']['#submit']);
+      if (empty($complete_form['submit']['#submit'])) {
+        $complete_form['submit']['#submit'] = $submit;
+      }
+      else {
+        $complete_form['submit']['#submit'] = array_merge([[get_called_class(), 'triggerIefSubmit']], $complete_form['submit']['#submit']);
+      }
       $complete_form['submit']['#ief_submit_all'] = TRUE;
       $submit_attached = TRUE;
     }
 
     foreach (['submit', 'publish', 'unpublish'] as $action) {
       if (!empty($complete_form['actions'][$action])) {
-        $complete_form['actions'][$action]['#submit'] = empty($complete_form['actions'][$action]['#submit']) ? $submit : array_merge($submit, $complete_form['actions'][$action]['#submit']);
+        if (empty($complete_form['actions'][$action]['#submit'])) {
+          $complete_form['actions'][$action]['#submit'] = $submit;
+        }
+        else {
+          $complete_form['actions'][$action]['#submit'] = array_merge([[get_called_class(), 'triggerIefSubmit']], $complete_form['actions'][$action]['#submit']);
+        }
         $complete_form['actions'][$action]['#ief_submit_all'] = TRUE;
         $submit_attached = TRUE;
       }

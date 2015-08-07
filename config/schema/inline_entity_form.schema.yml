@@ -1,6 +1,6 @@
 # Schema for the Inline Entity Reference module display settings.
 
-field.widget.settings.inline_entity_form_single:
+field.widget.settings.inline_entity_form_simple:
   type: mapping
   label: 'Inline entity reference display format settings'
   mapping:
@@ -13,6 +13,15 @@ field.widget.settings.inline_entity_form_single:
     label_plural:
       type: string
       label: "Label (plural)"
+    allow_new:
+      type: boolean
+      label: "Allow new"
+    allow_existing:
+      type: boolean
+      label: "Allow existing"
+    match_operator:
+      type: string
+      label: "Match operator"
 
 field.widget.settings.inline_entity_form_multiple:
   type: mapping

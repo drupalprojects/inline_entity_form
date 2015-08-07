@@ -188,7 +188,12 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
       $controller = \Drupal::entityManager()
         ->getFormObject($entity->getEntityTypeId(), $operation);
       $child_form_state = static::buildChildFormState($controller, $form_state, $entity, $operation);
-      $controller->validateForm($entity_form, $child_form_state);
+      $entity_form['#entity'] = $controller->validateForm($entity_form, $child_form_state);
+
+      // TODO - this is field-only part of the code. Figure out how to refactor.
+      if ($child_form_state->has(['inline_entity_form', $entity_form['#ief_id']])) {
+        $form_state->set(['inline_entity_form', $entity_form['#ief_id'], 'entity'], $entity_form['#entity']);
+      }
 
       foreach($child_form_state->getErrors() as $name => $message) {
         $form_state->setErrorByName($name, $message);
@@ -230,7 +235,7 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
       // exception from being thrown.
       $controller->getEntity()->setValidationRequired(FALSE);
     }
-    $controller->save($child_form, $child_form_state);
+
     $entity_form['#entity'] = $controller->getEntity();
 
     if ($entity_form['#save_entity']) {
@@ -238,11 +243,8 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
     }
 
     // TODO - this is field-only part of the code. Figure out how to refactor.
-    if ($child_form_state->get('inline_entity_form')) {
-      foreach ($child_form_state->get('inline_entity_form') as $id => $data) {
-        $data['entity'] = $entity_form['#entity'];
-        $form_state->set(['inline_entity_form', $id], $data);
-      }
+    if ($child_form_state->has(['inline_entity_form', $entity_form['#ief_id']])) {
+      $form_state->set(['inline_entity_form', $entity_form['#ief_id'], 'entity'], $entity_form['#entity']);
     }
 
   }

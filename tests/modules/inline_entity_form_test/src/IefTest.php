@@ -30,7 +30,7 @@ class IefTest extends FormBase {
       '#type' => 'inline_entity_form',
       '#op' => 'add',
       '#entity_type' => 'node',
-      '#bundle' => 'ief_test',
+      '#bundle' => 'ief_test_custom',
     ];
     $form['submit'] = [
       '#type' => 'submit',

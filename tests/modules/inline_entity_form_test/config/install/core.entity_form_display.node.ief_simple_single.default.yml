@@ -2,10 +2,10 @@ langcode: und
 status: true
 dependencies:
   config:
-    - node.type.ief_test
-id: node.ief_test.default
+    - node.type.ief_simple_single
+id: node.ief_simple_single.default
 targetEntityType: node
-bundle: ief_test
+bundle: ief_simple_single
 mode: default
 content:
   title:
@@ -40,4 +40,14 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
+  single:
+    weight: 30
+    settings:
+      match_operator: CONTAINS
+      allow_existing: false
+      override_labels: false
+      label_singular: ''
+      label_plural: ''
+    third_party_settings: {  }
+    type: inline_entity_form_simple
 hidden: {  }

@@ -7,11 +7,13 @@
 
 namespace Drupal\inline_entity_form\Plugin\Field\FieldWidget;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\Render\Element;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -228,4 +230,169 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
     }
   }
 
+  /**
+   * Checks whether we can build entity form at all.
+   *
+   * - Is IEF handler loaded?
+   * - Are we on a "real" entity form and not on default value widget?
+   *
+   * @param FormStateInterface $form_state
+   *   Form state.
+   *
+   * @return bool
+   *   TRUE if we are able to proceed with form build and FALSE if not.
+   */
+  protected function canBuildForm(FormStateInterface $form_state) {
+    if ($this->isDefaultValueWidget($form_state)) {
+      return FALSE;
+    }
+
+    if (!$this->iefHandler) {
+      return FALSE;
+    }
+
+    return TRUE;
+  }
+
+  /**
+   * Gets inline entity form element.
+   *
+   * @param $operation
+   *   Operation (i.e. 'add' or 'edit').
+   * @param $target_type
+   *   Target entity type.
+   * @param $language
+   *   Entity langcode.
+   * @param array $parents
+   *   Array of parent element names.
+   * @param EntityInterface $entity
+   *   Optional entity object.
+   * @param bool $save_entity
+   *   IEF will attempt to save entity after attaching all field values if set to
+   *   TRUE. Defaults to FALSE.
+   *
+   * @return array
+   *   IEF form element structure.
+   */
+  protected function getInlineEntityForm($operation, $target_type, $language, $delta, array $parents, $bundle = NULL, EntityInterface $entity = NULL, $save_entity = FALSE) {
+    $ief = [
+      '#type' => 'inline_entity_form',
+      '#op' => $operation,
+      '#save_entity' => $save_entity,
+      '#ief_row_delta' => $delta,
+      // Used by Field API and controller methods to find the relevant
+      // values in $form_state.
+      '#parents' => $parents,
+      '#entity_type' => $target_type,
+      // Pass the langcode of the parent entity,
+      '#language' => $language,
+      // Labels could be overridden in field widget settings. We won't have
+      // access to those in static callbacks (#process, ...) so let's add
+      // them here.
+      '#ief_labels' => $this->labels(),
+      // Identifies the IEF widget to which the form belongs.
+      '#ief_id' => $this->getIefId(),
+      // Add the pre_render callback that powers the #fieldset form element key,
+      // which moves the element to the specified fieldset without modifying its
+      // position in $form_state->get('values').
+      '#pre_render' => [[get_class($this), 'addFieldsetMarkup']],
+    ];
+
+    if ($entity) {
+      // Store the entity on the form, later modified in the controller.
+      $ief['#entity'] = $entity;
+    }
+
+    if ($bundle) {
+      $ief['#bundle'] = $bundle;
+    }
+
+    return $ief;
+  }
+
+  /**
+   * Adds submit callbacks to the inline entity form.
+   *
+   * @param array $element
+   *   Form array structure.
+   */
+  public static function addIefSubmitCallbacks($element) {
+    $element['#ief_element_submit'][] = [get_called_class(), 'submitSaveEntity'];
+    return $element;
+  }
+
+  /**
+   * Pre-render callback: Move form elements into fieldsets for presentation purposes.
+   *
+   * Inline forms use #tree = TRUE to keep their values in a hierarchy for
+   * easier storage. Moving the form elements into fieldsets during form building
+   * would break up that hierarchy, so it's not an option for Field API fields.
+   * Therefore, we wait until the pre_render stage, where any changes we make
+   * affect presentation only and aren't reflected in $form_state->getValues().
+   */
+  public static function addFieldsetMarkup($form) {
+    $sort = [];
+    foreach (Element::children($form) as $key) {
+      $element = $form[$key];
+      // In our form builder functions, we added an arbitrary #fieldset property
+      // to any element that belongs in a fieldset. If this form element has that
+      // property, move it into its fieldset.
+      if (isset($element['#fieldset']) && isset($form[$element['#fieldset']])) {
+        $form[$element['#fieldset']][$key] = $element;
+        // Remove the original element this duplicates.
+        unset($form[$key]);
+        // Mark the fieldset for sorting.
+        if (!in_array($key, $sort)) {
+          $sort[] = $element['#fieldset'];
+        }
+      }
+    }
+
+    // Sort all fieldsets, so that element #weight stays respected.
+    foreach ($sort as $key) {
+      uasort($form[$key], 'element_sort');
+    }
+
+    return $form;
+  }
+
+  /**
+   * Marks created/edited entity with "needs save" flag.
+   *
+   * Note that at this point the entity is not yet saved, since the user might
+   * still decide to cancel the parent form.
+   *
+   * @param $entity_form
+   *  The form of the entity being managed inline.
+   * @param $form_state
+   *   The form state of the parent form.
+   */
+  public static function submitSaveEntity($entity_form, FormStateInterface $form_state) {
+    $ief_id = $entity_form['#ief_id'];
+    $entity = $entity_form['#entity'];
+
+    if ($entity_form['#op'] == 'add') {
+      // Determine the correct weight of the new element.
+      $weight = 0;
+      $entities = $form_state->get(['inline_entity_form', $ief_id, 'entities']);
+      if (!empty($entities)) {
+        $weight = max(array_keys($entities)) + 1;
+      }
+      // Add the entity to form state, mark it for saving, and close the form.
+      $entities[] = array(
+        'entity' => $entity,
+        '_weight' => $weight,
+        'form' => NULL,
+        'needs_save' => TRUE,
+      );
+      $form_state->set(['inline_entity_form', $ief_id, 'entities'], $entities);
+    }
+    else {
+      $delta = $entity_form['#ief_row_delta'];
+      $entities = $form_state->get(['inline_entity_form', $ief_id, 'entities']);
+      $entities[$delta]['entity'] = $entity;
+      $entities[$delta]['needs_save'] = TRUE;
+      $form_state->set(['inline_entity_form', $ief_id, 'entities'], $entities);
+    }
+  }
 }
