@@ -164,12 +164,12 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
     $element['override_labels'] = [
       '#type' => 'checkbox',
       '#title' => t('Override labels'),
-      '#default_value' => $this->settings['override_labels'],
+      '#default_value' => $this->getSetting('override_labels'),
     ];
     $element['label_singular'] = [
       '#type' => 'textfield',
       '#title' => t('Singular label'),
-      '#default_value' => $this->settings['label_singular'],
+      '#default_value' => $this->getSetting('label_singular'),
       '#states' => [
         'visible' => [
           ':input[name="' . $states_prefix . '[override_labels]"]' => ['checked' => TRUE],
@@ -179,7 +179,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
     $element['label_plural'] = array(
       '#type' => 'textfield',
       '#title' => t('Plural label'),
-      '#default_value' => $this->settings['label_plural'],
+      '#default_value' => $this->getSetting('label_plural'),
       '#states' => array(
         'visible' => array(
           ':input[name="' . $states_prefix . '[override_labels]"]' => ['checked' => TRUE],
@@ -195,10 +195,10 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    */
   public function settingsSummary() {
     $summary = [];
-    if ($this->settings['override_labels']) {
+    if ($this->getSetting('override_labels')) {
       $summary[] = t(
         'Overriden labels are used: %singular and %plural',
-        ['%singular' => $this->settings['label_singular'], '%plural' => $this->settings['label_plural']]
+        ['%singular' => $this->getSetting('label_singular'), '%plural' => $this->getSetting('label_plural')]
       );
     }
     else {
@@ -218,10 +218,10 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    */
   protected function labels() {
     // The admin has specified the exact labels that should be used.
-    if ($this->settings['override_labels']) {
+    if ($this->getSetting('override_labels')) {
       return [
-        'singular' => $this->settings['label_singular'],
-        'plural' => $this->settings['label_plural'],
+        'singular' => $this->getSetting('label_singular'),
+        'plural' => $this->getSetting('label_plural'),
       ];
     }
     else {

@@ -103,17 +103,17 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
     $element['allow_new'] = [
       '#type' => 'checkbox',
       '#title' => t('Allow users to add new @label.', array('@label' => $labels['plural'])),
-      '#default_value' => $this->settings['allow_new'],
+      '#default_value' => $this->getSetting('allow_new'),
     ];
     $element['allow_existing'] = [
       '#type' => 'checkbox',
       '#title' => t('Allow users to add existing @label.', ['@label' => $labels['plural']]),
-      '#default_value' => $this->settings['allow_existing'],
+      '#default_value' => $this->getSetting('allow_existing'),
     ];
     $element['match_operator'] = [
       '#type' => 'select',
       '#title' => t('Autocomplete matching'),
-      '#default_value' => $this->settings['match_operator'],
+      '#default_value' => $this->getSetting('match_operator'),
       '#options' => $this->getMatchOperatorOptions(),
       '#description' => t('Select the method used to collect autocomplete suggestions. Note that <em>Contains</em> can cause performance issues on sites with thousands of nodes.'),
       '#states' => [
@@ -133,7 +133,7 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
     $summary = parent::settingsSummary();
     $labels = $this->labels();
 
-    if ($this->settings['allow_new']) {
+    if ($this->getSetting('allow_new')) {
       $summary[] = t('New @label can be added.', ['@label' => $labels['plural']]);
     }
     else {
@@ -141,10 +141,10 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
     }
 
     $match_operator_options = $this->getMatchOperatorOptions();
-    if ($this->settings['allow_existing']) {
+    if ($this->getSetting('allow_existing')) {
       $summary[] = t('Existing @label can be referenced and are matched with the %operator operator.', [
         '@label' => $labels['plural'],
-        '%operator' => $match_operator_options[$this->settings['match_operator']],
+        '%operator' => $match_operator_options[$this->getSetting('match_operator')],
       ]);
     }
     else {
@@ -175,8 +175,8 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
       return $element;
     }
 
-    $settings = $this->getFieldSettings();
-
+    $settings = $this->getSettings();
+    $target_type = $this->getFieldSetting('target_type');
     // Get the entity type labels for the UI strings.
     $labels = $this->labels();
 
@@ -211,7 +211,7 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
 
     // Initialize the IEF array in form state.
     if (!$form_state->has(['inline_entity_form', $this->getIefId(), 'settings'])) {
-      $form_state->set(['inline_entity_form', $this->getIefId(), 'settings'], $settings);
+      $form_state->set(['inline_entity_form', $this->getIefId(), 'settings'], $this->getFieldSettings());
     }
 
     if (!$form_state->has(['inline_entity_form', $this->getIefId(), 'instance'])) {
@@ -259,7 +259,7 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
     $element['entities'] = array(
       '#tree' => TRUE,
       '#theme' => 'inline_entity_form_entity_table',
-      '#entity_type' => $settings['target_type'],
+      '#entity_type' => $target_type,
     );
 
     // Get the fields that should be displayed in the table.
@@ -269,7 +269,7 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
       'parent_entity_type' => $this->fieldDefinition->getTargetEntityTypeId(),
       'parent_bundle' => $this->fieldDefinition->getTargetBundle(),
       'field_name' => $this->fieldDefinition->getName(),
-      'entity_type' => $settings['target_type'],
+      'entity_type' => $target_type,
       'allowed_bundles' => $target_bundles,
     );
     $this->moduleHandler->alter('inline_entity_form_table_fields', $fields, $context);
@@ -306,7 +306,7 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
             '#attributes' => ['class' => ['ief-form', 'ief-form-row']],
             'inline_entity_form' => $this->getInlineEntityForm(
               $value['form'],
-              $settings['target_type'],
+              $target_type,
               $parent_langcode,
               $key,
               array_merge($parents,  ['inline_entity_form', 'entities', $key, 'form']),
@@ -374,7 +374,7 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
         // If 'allow_existing' is on, the default removal operation is unlink
         // and the access check for deleting happens inside the controller
         // removeForm() method.
-        if (empty($entity_id) || $this->settings['allow_existing'] || $entity->access('delete')) {
+        if (empty($entity_id) || $settings['allow_existing'] || $entity->access('delete')) {
           $row['actions']['ief_entity_remove'] = array(
             '#type' => 'submit',
             '#value' => t('Remove'),
@@ -415,18 +415,18 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
 
     // If the field is required and empty try to open one of the forms.
     if (empty($entities) && $this->fieldDefinition->isRequired()) {
-      if ($this->settings['allow_existing'] && !$this->settings['allow_new']) {
+      if ($settings['allow_existing'] && !$settings['allow_new']) {
         $form_state->set(['inline_entity_form', $this->getIefId(), 'form'], 'ief_add_existing');
         $hide_cancel = TRUE;
       }
-      elseif ($target_bundles_count == 1 && $this->settings['allow_new'] && !$this->settings['allow_existing']) {
+      elseif ($target_bundles_count == 1 && $settings['allow_new'] && !$settings['allow_existing']) {
         $bundle = reset($target_bundles);
 
         // The parent entity type and bundle must not be the same as the inline
         // entity type and bundle, to prevent recursion.
         $parent_entity_type = $this->fieldDefinition->getTargetEntityTypeId();
         $parent_bundle =  $this->fieldDefinition->getTargetBundle();
-        if ($parent_entity_type != $settings['target_type'] || $parent_bundle != $bundle) {
+        if ($parent_entity_type != $target_type || $parent_bundle != $bundle) {
           $form_state->set(['inline_entity_form', $this->getIefId(), 'form'], 'add');
           $form_state->set(['inline_entity_form', $this->getIefId(), 'form settings'], array(
             'bundle' => $bundle,
@@ -447,11 +447,11 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
       );
 
       // The user is allowed to create an entity of at least one bundle.
-      if ($this->settings['allow_new'] && $target_bundles_count) {
+      if ($settings['allow_new'] && $target_bundles_count) {
         // Let the user select the bundle, if multiple are available.
         if ($target_bundles_count > 1) {
           $bundles = array();
-          foreach ($this->entityManager->getBundleInfo($settings['target_type']) as $bundle_name => $bundle_info) {
+          foreach ($this->entityManager->getBundleInfo($target_type) as $bundle_name => $bundle_info) {
             if (in_array($bundle_name, $target_bundles)) {
               $bundles[$bundle_name] = $bundle_info['label'];
             }
@@ -483,7 +483,7 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
         );
       }
 
-      if ($this->settings['allow_existing']) {
+      if ($settings['allow_existing']) {
         $element['actions']['ief_add_existing'] = array(
           '#type' => 'submit',
           '#value' => t('Add existing @type_singular', array('@type_singular' => $labels['singular'])),
@@ -506,7 +506,7 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
           '#attributes' => ['class' => ['ief-form', 'ief-form-bottom']],
           'inline_entity_form' => $this->getInlineEntityForm(
             'add',
-            $settings['target_type'],
+            $target_type,
             $parent_langcode,
             NULL,
             array_merge($parents, ['inline_entity_form']),
@@ -529,7 +529,7 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
           // values in $form_state.
           '#parents' => array_merge($parents),
           // Pass the current entity type.
-          '#entity_type' => $settings['target_type'],
+          '#entity_type' => $target_type,
           // Pass the langcode of the parent entity,
           '#parent_language' => $parent_langcode,
           // Add the pre_render callback that powers the #fieldset form element key,
@@ -780,7 +780,7 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
       '#markup' => $message,
     ];
 
-    if (!empty($entity_id) && $this->settings['allow_existing'] && $entity->access('delete')) {
+    if (!empty($entity_id) && $this->getSetting('allow_existing') && $entity->access('delete')) {
       $form['delete'] = [
         '#type' => 'checkbox',
         '#title' => t('Delete this @type_singular from the system.', array('@type_singular' => $labels['singular'])),
