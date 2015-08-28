@@ -191,7 +191,7 @@ class InlineEntityForm extends RenderElement {
    */
   public static function recurseAttachMainSubmit(&$element, $submit_callbacks) {
     foreach (Element::children($element) as $child) {
-      if ($element[$child]['#type'] == 'submit' && $element[$child]['#button_type'] == 'preview') {
+      if (!empty($element[$child]['#type']) && $element[$child]['#type'] == 'submit' && $element[$child]['#button_type'] == 'preview') {
         $element[$child]['#submit'] = empty($element[$child]['#submit']) ? $submit_callbacks : array_merge($submit_callbacks, $element[$child]['#submit']);
         $element[$child]['#ief_submit_all'] = TRUE;
         return TRUE;
