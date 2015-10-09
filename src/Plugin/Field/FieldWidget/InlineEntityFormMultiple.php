@@ -867,7 +867,7 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
 
     $widget = \Drupal::entityManager()
       ->getStorage('entity_form_display')
-      ->load($entity->getEntityTypeId() . '.' . $entity->bundle() . '.default')
+      ->load($instance->getTargetEntityTypeId() . '.' . $instance->getTargetBundle() . '.default')
       ->getComponent($instance->getName());
 
     $form_values = NestedArray::getValue($form_state->getValues(), $element['entities'][$delta]['form']['#parents']);
