@@ -14,11 +14,11 @@ use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * Single value widget.
+ * Simple inline widget.
  *
  * @FieldWidget(
  *   id = "inline_entity_form_simple",
- *   label = @Translation("Simple inline entity form"),
+ *   label = @Translation("Inline entity form - Simple"),
  *   field_types = {
  *     "entity_reference"
  *   },

@@ -17,7 +17,7 @@ use Drupal\Core\Render\Element;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Inline entity form widget base class (shared between single and multiple).
+ * Inline entity form widget base class.
  */
 abstract class InlineEntityFormBase extends WidgetBase implements ContainerFactoryPluginInterface {
 

@@ -23,7 +23,7 @@ field.widget.settings.inline_entity_form_simple:
       type: string
       label: "Match operator"
 
-field.widget.settings.inline_entity_form_multiple:
+field.widget.settings.inline_entity_form_complex:
   type: mapping
   label: 'Inline entity reference display format settings'
   mapping:

@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\inline_entity_form\Plugin\Field\FieldWidget\InlineEntityFormMultiple.
+ * Contains \Drupal\inline_entity_form\Plugin\Field\FieldWidget\InlineEntityFormComplex.
  */
 
 namespace Drupal\inline_entity_form\Plugin\Field\FieldWidget;
@@ -20,18 +20,18 @@ use Drupal\Core\Render\Element;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Multiple value widget.
+ * Complex inline widget.
  *
  * @FieldWidget(
- *   id = "inline_entity_form_multiple",
- *   label = @Translation("Inline entity form - Multiple value"),
+ *   id = "inline_entity_form_complex",
+ *   label = @Translation("Inline entity form - Complex"),
  *   field_types = {
  *     "entity_reference"
  *   },
  *   multiple_values = true
  * )
  */
-class InlineEntityFormMultiple extends InlineEntityFormBase implements ContainerFactoryPluginInterface {
+class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerFactoryPluginInterface {
 
   /**
    * Module handler service.
