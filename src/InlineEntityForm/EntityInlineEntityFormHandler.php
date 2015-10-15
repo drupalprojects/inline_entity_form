@@ -180,7 +180,13 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
     // means it should be complete. Don't validate for other requests (like file
     // uploads, etc.).
     $triggering_element = $form_state->getTriggeringElement();
-    if (!empty($triggering_element['#ief_submit_all'])) {
+    $validate = TRUE;
+    if (empty($triggering_element['#ief_submit_all'])) {
+      $element_name = end($triggering_element['#array_parents']);
+      $validate = in_array($element_name, ['ief_add_save', 'ief_edit_save']);
+    }
+
+    if ($validate) {
       /** @var \Drupal\Core\Entity\EntityInterface $entity */
       $entity = $entity_form['#entity'];
       $operation = 'default';
@@ -196,7 +202,9 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
       }
 
       foreach($child_form_state->getErrors() as $name => $message) {
-        $form_state->setErrorByName($name, $message);
+        // $name may be unknown in $form_state and
+        // $form_state->setErrorByName($name, $message) may suppress the error message.
+        $form_state->setError($triggering_element, $message);
       }
     }
 
