@@ -248,6 +248,13 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
       $entities = $form_state->get(['inline_entity_form', $this->getIefId(), 'entities']);
     }
 
+    // Remove any leftover data from removed entity references.
+    foreach ($entities as $key => $value) {
+      if (!isset($value) || !isset($value['entity'])) {
+        unset($entities[$key]);
+      }
+    }
+
     // Build the "Multiple value" widget.
     // TODO - does this belong in #element_validate?
     $element['#element_validate'] =[[get_class($this), 'updateRowWeights']];
@@ -277,10 +284,6 @@ class InlineEntityFormMultiple extends InlineEntityFormBase implements Container
 
     $weight_delta = max(ceil(count($entities) * 1.2), 50);
     foreach ($entities as $key => $value) {
-      if (!isset($value['entity'])) {
-        continue;
-      }
-
       // Data used by theme_inline_entity_form_entity_table().
       /** @var \Drupal\Core\Entity\EntityInterface $entity */
       $entity = $value['entity'];
