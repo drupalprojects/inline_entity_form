@@ -288,7 +288,6 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
       /** @var \Drupal\Core\Entity\EntityInterface $entity */
       $entity = $value['entity'];
       $element['entities'][$key]['#entity'] = $value['entity'];
-      $element['entities'][$key]['#item'] = $items->offsetGet($key);
       $element['entities'][$key]['#needs_save'] = $value['needs_save'];
 
       // Handle row weights.
