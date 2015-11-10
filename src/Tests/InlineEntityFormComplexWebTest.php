@@ -138,7 +138,7 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
     $this->assertResponse(200, 'Creating node via inline form was successful.');
 
     // Tests if correct fields appear in the table.
-    $this->assertTrue((bool) $this->xpath('//td[@class="inline-entity-form-node-title" and ./span[contains(.,"Some reference")]]'), 'Node title field appears in the table');
+    $this->assertTrue((bool) $this->xpath('//td[@class="inline-entity-form-node-label" and contains(.,"Some reference")]'), 'Node title field appears in the table');
     $this->assertTrue((bool) $this->xpath('//td[@class="inline-entity-form-node-status" and ./div[contains(.,"Published")]]'), 'Node status field appears in the table');
 
     // Tests if edit and remove buttons appear.
@@ -180,7 +180,7 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
 
     // Edit the second entity.
     $this->drupalGet('node/'. $parent_node->id() .'/edit');
-    $cell = $this->xpath('//table[@id="ief-entity-table-edit-multi-entities"]/tbody/tr[@class="ief-row-entity draggable even"]/td[@class="inline-entity-form-node-title"]/span');
+    $cell = $this->xpath('//table[@id="ief-entity-table-edit-multi-entities"]/tbody/tr[@class="ief-row-entity draggable even"]/td[@class="inline-entity-form-node-label"]');
     $title = (string) $cell[0];
 
     $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @id="edit-multi-entities-1-actions-ief-entity-edit"]'));
@@ -204,7 +204,7 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
 
     // Delete the second entity.
     $this->drupalGet('node/'. $parent_node->id() .'/edit');
-    $cell = $this->xpath('//table[@id="ief-entity-table-edit-multi-entities"]/tbody/tr[@class="ief-row-entity draggable even"]/td[@class="inline-entity-form-node-title"]/span');
+    $cell = $this->xpath('//table[@id="ief-entity-table-edit-multi-entities"]/tbody/tr[@class="ief-row-entity draggable even"]/td[@class="inline-entity-form-node-label"]');
     $title = (string) $cell[0];
 
     $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @id="edit-multi-entities-1-actions-ief-entity-remove"]'));
@@ -227,7 +227,7 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
     // entity now is second referenced entity because the second one was deleted
     // in previous step.
     $this->drupalGet('node/'. $parent_node->id() .'/edit');
-    $cell = $this->xpath('//table[@id="ief-entity-table-edit-multi-entities"]/tbody/tr[@class="ief-row-entity draggable even"]/td[@class="inline-entity-form-node-title"]/span');
+    $cell = $this->xpath('//table[@id="ief-entity-table-edit-multi-entities"]/tbody/tr[@class="ief-row-entity draggable even"]/td[@class="inline-entity-form-node-label"]');
     $title = (string) $cell[0];
 
     $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @id="edit-multi-entities-1-actions-ief-entity-remove"]'));
@@ -285,7 +285,7 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
     // Check if entities are referenced.
     $this->drupalGet('node/'. $parent_node->id() .'/edit');
     for ($i = 2; $i <= 3; $i++) {
-      $cell = $this->xpath('//table[@id="ief-entity-table-edit-multi-entities"]/tbody/tr[' . $i . ']/td[@class="inline-entity-form-node-title"]/span');
+      $cell = $this->xpath('//table[@id="ief-entity-table-edit-multi-entities"]/tbody/tr[' . $i . ']/td[@class="inline-entity-form-node-label"]');
       $this->assertTrue($cell[0] == 'Some reference ' . $i, 'Found reference node title "Some reference ' . $i .'" in the IEF table.');
     }
   }

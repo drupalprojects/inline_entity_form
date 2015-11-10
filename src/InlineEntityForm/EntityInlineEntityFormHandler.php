@@ -99,32 +99,30 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
    */
   public function tableFields($bundles) {
     $info = $this->entityManager->getDefinition($this->entityTypeId());
-    $metadata = array();
+    $definitions = $this->entityManager->getBaseFieldDefinitions($this->entityTypeId());
+    $label_key = $info->getKey('label');
+    $label_field_label = t('Label');
+    if ($label_key && isset($definitions[$label_key])) {
+      $label_field_label = $definitions[$label_key]->getLabel();
+    }
+    $bundle_key = $info->getKey('bundle');
+    $bundle_field_label = t('Type');
+    if ($bundle_key && isset($definitions[$bundle_key])) {
+      $bundle_field_label = $definitions[$bundle_key]->getLabel();
+    }
 
-    $fields = array();
-    if ($info->hasKey('label')) {
-      $label_key = $info->getKey('label');
-      $fields[$label_key] = array(
-        'type' => 'field',
-        'label' => $metadata ? $metadata[$label_key]['label'] : t('Label'),
-        'weight' => 1,
-      );
-    }
-    else {
-      $id_key = $info->getKey('id');
-      $fields[$id_key] = array(
-        'type' => 'field',
-        'label' => $metadata ? $metadata[$id_key]['label'] : t('ID'),
-        'weight' => 1,
-      );
-    }
+    $fields = [];
+    $fields['label'] = [
+      'type' => 'label',
+      'label' => $label_field_label,
+      'weight' => 1,
+    ];
     if (count($bundles) > 1) {
-      $bundle_key = $info->getKey('bundle');
-      $fields[$bundle_key] = array(
+      $fields[$bundle_key] = [
         'type' => 'field',
-        'label' => $metadata ? $metadata[$bundle_key]['label'] : t('Type'),
+        'label' => $bundle_field_label,
         'weight' => 2,
-      );
+      ];
     }
 
     return $fields;
