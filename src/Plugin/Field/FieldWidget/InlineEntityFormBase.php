@@ -395,4 +395,39 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       $form_state->set(['inline_entity_form', $ief_id, 'entities'], $entities);
     }
   }
+
+  /**
+   * Checks if current submit is relevant for IEF.
+   *
+   * We need to save all referenced entities and extract their IDs into field
+   * values.
+   *
+   * @param array $form
+   *   Complete form.
+   * @param FormStateInterface $form_state
+   *   Form state.
+   */
+  protected function isSubmitRelevant(array $form, FormStateInterface $form_state) {
+    $field_name = $this->fieldDefinition->getName();
+    $parents = array_merge($form['#parents'], [$field_name, 'form']);
+
+    $trigger = $form_state->getTriggeringElement();
+    if (isset($trigger['#limit_validation_errors']) && $trigger['#limit_validation_errors'] !== FALSE) {
+      $imploded_parents = implode('', array_slice($parents, 0, -1));
+      $relevant_sections = array_filter(
+        $trigger['#limit_validation_errors'],
+        function ($item) use ($imploded_parents) {
+          $imploded_item = implode('', $item);
+          return strpos($imploded_item, $imploded_parents) !== 0;
+        }
+      );
+
+      if (empty($relevant_sections)) {
+        return FALSE;
+      }
+    }
+
+    return TRUE;
+  }
+
 }
