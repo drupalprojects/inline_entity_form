@@ -7,10 +7,6 @@
 
 namespace Drupal\inline_entity_form\Tests;
 
-use Drupal\node\Entity\Node;
-use Drupal\field\Entity\FieldConfig;
-use Drupal\field\Entity\FieldStorageConfig;
-use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\simpletest\WebTestBase;
 
 /**
@@ -125,7 +121,17 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
     $this->setAllowExisting(TRUE);
     $this->drupalGet($this->formContentAddUrl);
 
+    $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add new node"]'));
+    $this->assertResponse(200, 'Opening new inline form was successful.');
+
+    $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Create node"]'));
+    $this->assertResponse(200, 'Submitting empty form was successful.');
+    $this->assertText('First name field is required.', 'Validation failed for empty "First name" field.');
+    $this->assertText('Last name field is required.', 'Validation failed for empty "Last name" field.');
+    $this->assertText('Title field is required.', 'Validation failed for empty "Title" field.');
+
     // Create ief_reference_type node in IEF.
+    $this->drupalGet($this->formContentAddUrl);
     $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add new node"]'));
     $this->assertResponse(200, 'Opening new inline form was successful.');
 
@@ -145,13 +151,22 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
     $this->assertTrue((bool) $this->xpath('//input[@type="submit" and @value="Edit"]'), 'Edit button appears in the table.');
     $this->assertTrue((bool) $this->xpath('//input[@type="submit" and @value="Remove"]'), 'Remove button appears in the table.');
 
+    // Test edit functionality.
+    $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Edit"]'));
+    $edit = [
+      'multi[form][inline_entity_form][entities][0][form][title][0][value]' => 'Some changed reference',
+    ];
+    $this->drupalPostAjaxForm(NULL, $edit, $this->getButtonName('//input[@type="submit" and @value="Update node"]'));
+    $this->assertTrue((bool) $this->xpath('//td[@class="inline-entity-form-node-label" and contains(.,"Some changed reference")]'), 'Node title field appears in the table');
+    $this->assertTrue((bool) $this->xpath('//td[@class="inline-entity-form-node-status" and ./div[contains(.,"Published")]]'), 'Node status field appears in the table');
+
     // Create ief_test_complex node.
     $edit = ['title[0][value]' => 'Some title'];
     $this->drupalPostForm(NULL, $edit, t('Save'));
     $this->assertResponse(200, 'Saving parent entity was successful.');
 
     // Checks values of created entities.
-    $node = $this->drupalGetNodeByTitle('Some reference');
+    $node = $this->drupalGetNodeByTitle('Some changed reference');
     $this->assertTrue($node, 'Created ief_reference_type node ' . $node->label());
     $this->assertTrue($node->get('first_name')->value == 'John', 'First name in reference node set to John');
     $this->assertTrue($node->get('last_name')->value == 'Doe', 'Last name in reference node set to Doe');

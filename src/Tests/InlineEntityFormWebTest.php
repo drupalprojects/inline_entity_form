@@ -6,6 +6,7 @@
  */
 
 namespace Drupal\inline_entity_form\Tests;
+
 use Drupal\simpletest\WebTestBase;
 
 /**

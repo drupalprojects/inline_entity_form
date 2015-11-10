@@ -286,6 +286,7 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
     $child_form_state->addBuildInfo('args', array());
 
     // Copy values to child form.
+    $child_form_state->setCompleteForm($form_state->getCompleteForm());
     $child_form_state->setUserInput($form_state->getUserInput());
     $child_form_state->setValues($form_state->getValues());
     $child_form_state->setStorage($form_state->getStorage());
