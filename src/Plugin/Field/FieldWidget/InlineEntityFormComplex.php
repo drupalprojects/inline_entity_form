@@ -308,7 +308,6 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
             '#attributes' => ['class' => ['ief-form', 'ief-form-row']],
             'inline_entity_form' => $this->getInlineEntityForm(
               $value['form'],
-              $target_type,
               $parent_langcode,
               $key,
               array_merge($parents,  ['inline_entity_form', 'entities', $key, 'form']),
@@ -508,7 +507,6 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
           '#attributes' => ['class' => ['ief-form', 'ief-form-bottom']],
           'inline_entity_form' => $this->getInlineEntityForm(
             'add',
-            $target_type,
             $parent_langcode,
             NULL,
             array_merge($parents, ['inline_entity_form']),

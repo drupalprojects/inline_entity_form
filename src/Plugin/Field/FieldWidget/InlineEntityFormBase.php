@@ -259,8 +259,6 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    *
    * @param $operation
    *   Operation (i.e. 'add' or 'edit').
-   * @param $target_type
-   *   Target entity type.
    * @param $language
    *   Entity langcode.
    * @param array $parents
@@ -274,7 +272,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    * @return array
    *   IEF form element structure.
    */
-  protected function getInlineEntityForm($operation, $target_type, $language, $delta, array $parents, $bundle = NULL, EntityInterface $entity = NULL, $save_entity = FALSE) {
+  protected function getInlineEntityForm($operation, $language, $delta, array $parents, $bundle = NULL, EntityInterface $entity = NULL, $save_entity = FALSE) {
     $ief = [
       '#type' => 'inline_entity_form',
       '#op' => $operation,
@@ -283,7 +281,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       // Used by Field API and controller methods to find the relevant
       // values in $form_state.
       '#parents' => $parents,
-      '#entity_type' => $target_type,
+      '#entity_type' => $this->getFieldSetting('target_type'),
       // Pass the langcode of the parent entity,
       '#language' => $language,
       // Labels could be overridden in field widget settings. We won't have

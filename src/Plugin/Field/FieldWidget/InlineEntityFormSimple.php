@@ -44,7 +44,6 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
       if ($entity) {
         $element['inline_entity_form'] = $this->getInlineEntityForm(
           'edit',
-          $entity_type,
           $items->getParent()->getValue()->language()->getId(),
           $delta,
           array_merge($element['#field_parents'], [
@@ -64,7 +63,6 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
     else {
       $element['inline_entity_form'] = $this->getInlineEntityForm(
         'add',
-        $entity_type,
         $items->getParent()->getValue()->language()->getId(),
         $delta,
         array_merge($element['#field_parents'], [
