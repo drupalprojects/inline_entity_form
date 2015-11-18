@@ -35,46 +35,27 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
       return $element;
     }
 
-    $this->setIefId(sha1($items->getName() . '-ief-single-' . $delta));
-    $entity_type = $this->getFieldSettings()['target_type'];
-
     $element['#type'] = 'fieldset';
+    $this->setIefId(sha1($items->getName() . '-ief-single-' . $delta));
+    $entity = NULL;
     if ($items->get($delta)->target_id) {
-      $entity = $this->entityManager->getStorage($entity_type)->load($items->get($delta)->target_id);
-      if ($entity) {
-        $element['inline_entity_form'] = $this->getInlineEntityForm(
-          'edit',
-          $items->getParent()->getValue()->language()->getId(),
-          $delta,
-          array_merge($element['#field_parents'], [
-            $items->getName(),
-            $delta,
-            'inline_entity_form'
-          ]),
-          reset($this->getFieldSettings()['handler_settings']['target_bundles']),
-          $entity,
-          TRUE
-        );
-      }
-      else {
-        $element['warning']['#markup'] = t('Unable to load referenced entity.');
+      $entity = $items->get($delta)->entity;
+      if (!$entity) {
+        $element['warning']['#markup'] = t('Unable to load the referenced entity.');
+        return $element;
       }
     }
-    else {
-      $element['inline_entity_form'] = $this->getInlineEntityForm(
-        'add',
-        $items->getParent()->getValue()->language()->getId(),
-        $delta,
-        array_merge($element['#field_parents'], [
-          $items->getName(),
-          $delta,
-          'inline_entity_form'
-        ]),
-        reset($this->getFieldSettings()['handler_settings']['target_bundles']),
-        NULL,
-        TRUE
-      );
-    }
+
+    $op = isset($entity) ? 'edit' : 'add';
+    $language = $items->getParent()->getValue()->language()->getId();
+    $parents = array_merge($element['#field_parents'], [
+      $items->getName(),
+      $delta,
+      'inline_entity_form'
+    ]);
+    $bundle = reset($this->getFieldSetting('handler_settings')['target_bundles']);
+    $element['inline_entity_form'] = $this->getInlineEntityForm($op, $language, $delta, $parents, $bundle, $entity, TRUE);
+
     return $element;
   }
 
