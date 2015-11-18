@@ -85,7 +85,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   protected function initializeIefController() {
     if (!isset($this->iefHandler)) {
       $target_type = $this->fieldDefinition->getFieldStorageDefinition()->getSetting('target_type');
-      $this->iefHandler = $this->entityManager->getHandler($target_type, 'inline entity form');
+      $this->iefHandler = $this->entityManager->getHandler($target_type, 'inline_form');
     }
   }
 

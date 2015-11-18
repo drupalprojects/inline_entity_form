@@ -32,7 +32,7 @@ Integrating with Inline Entity Form
 An entity type can add support for this module by declaring the
 inline entity form controller class in its entity info:
 
-$entity_info['commerce_line_item']['inline entity form'] = array(
+$entity_info['commerce_line_item']['inline_form'] = array(
   'controller' => 'CommerceLineItemInlineEntityFormController',
 );
 

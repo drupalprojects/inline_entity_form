@@ -20,13 +20,13 @@ use Drupal\inline_entity_form\InlineEntityForm\EntityInlineEntityFormHandler;
  */
 function inline_entity_form_entity_type_build(array &$entity_types) {
   /** @var \Drupal\Core\Entity\EntityTypeInterface[] $entity_types */
-  if (isset($entity_types['node']) && !$entity_types['node']->getHandlerClass('inline entity form')) {
-    $entity_types['node']->setHandlerClass('inline entity form', '\Drupal\inline_entity_form\InlineEntityForm\NodeInlineEntityFormHandler');
+  if (isset($entity_types['node']) && !$entity_types['node']->getHandlerClass('inline_form')) {
+    $entity_types['node']->setHandlerClass('inline_form', '\Drupal\inline_entity_form\InlineEntityForm\NodeInlineEntityFormHandler');
   }
 
   foreach ($entity_types as &$entity_type) {
-    if (!$entity_type->getHandlerClass('inline entity form')) {
-      $entity_type->setHandlerClass('inline entity form', '\Drupal\inline_entity_form\InlineEntityForm\EntityInlineEntityFormHandler');
+    if (!$entity_type->getHandlerClass('inline_form')) {
+      $entity_type->setHandlerClass('inline_form', '\Drupal\inline_entity_form\InlineEntityForm\EntityInlineEntityFormHandler');
     }
   }
 }
@@ -141,7 +141,7 @@ function inline_entity_form_reference_form_validate(&$reference_form, FormStateI
   $instance = $form_state->get(['inline_entity_form', $ief_id, 'instance']);
   $target_type = $instance->getFieldStorageDefinition()->getSetting('target_type');
   /** @var \Drupal\inline_entity_form\InlineEntityFormHandlerInterface $handler */
-  $handler = \Drupal::entityManager()->getHandler($target_type, 'inline entity form');
+  $handler = \Drupal::entityManager()->getHandler($target_type, 'inline_form');
   $labels = $handler->labels();
 
   $form_values = NestedArray::getValue($form_state->getValues(), $reference_form['#parents']);
