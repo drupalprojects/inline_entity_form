@@ -62,11 +62,10 @@ function inline_entity_form_reference_form($handler, $reference_form, &$form_sta
 
   $reference_form['#title'] = t('Add existing @type_singular', array('@type_singular' => $labels['singular']));
   $reference_form['entity_id'] = array(
-    '#type' => 'textfield',
+    '#type' => 'entity_autocomplete',
     '#title' => t('@label', array('@label' => ucwords($labels['singular']))),
-    '#autocomplete_route_name' => 'inline_entity_form.autocomplete',
-    '#autocomplete_route_parameters' => ['entity_type_id' => $instance->getTargetEntityTypeId(), 'field_name' => $instance->getName(), 'bundle' => $instance->getTargetBundle()],
-    '#element_validate' => array('_inline_entity_form_autocomplete_validate'),
+    '#target_type' => $instance->getSetting('target_type'),
+    '#selection_settings' => ['target_bundles' => $instance->getSetting('handler_settings')['target_bundles']],
     '#required' => TRUE,
     '#maxlength' => 255,
   );
@@ -109,20 +108,6 @@ function inline_entity_form_reference_form($handler, $reference_form, &$form_sta
   \Drupal::moduleHandler()->alter('inline_entity_form_reference_form', $reference_form, $form_state);
 
   return $reference_form;
-}
-
-/**
- * #element_validate callback for the IEF autocomplete field.
- */
-function _inline_entity_form_autocomplete_validate($element, FormStateInterface $form_state, $form) {
-  $value = '';
-  if (!empty($element['#value'])) {
-    // Take "label (entity id)', match the id from parenthesis.
-    if (preg_match("/.+\((\d+)\)/", $element['#value'], $matches)) {
-      $value = $matches[1];
-    }
-  }
-  $form_state->setValueForElement($element, $value);
 }
 
 /**

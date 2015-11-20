@@ -96,7 +96,7 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
     $this->assertFieldByXpath('//input[@type="submit" and @value="Add existing node"]', NULL, 'Found "Add existing node" submit button');
 
     // Now submit 'Add new node' button.
-    $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add new node"]'));
+    $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add new node" and @data-drupal-selector="edit-multi-actions-ief-add"]'));
 
     $this->assertFieldByName('multi[form][inline_entity_form][title][0][value]', NULL, 'Title field on inline form exists.');
     $this->assertFieldByName('multi[form][inline_entity_form][first_name][0][value]', NULL, 'First name field on inline form exists.');
@@ -106,7 +106,7 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
 
     // Now submit 'Add Existing node' button.
     $this->drupalGet($this->formContentAddUrl);
-    $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add existing node"]'));
+    $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add existing node" and @data-drupal-selector="edit-multi-actions-ief-add-existing"]'));
 
     $this->assertFieldByName('multi[form][entity_id]', NULL, 'Existing entity reference autocomplete field found.');
     $this->assertFieldByXpath('//input[@type="submit" and @value="Add node"]', NULL, 'Found "Add node" submit button');
@@ -121,10 +121,10 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
     $this->setAllowExisting(TRUE);
     $this->drupalGet($this->formContentAddUrl);
 
-    $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add new node"]'));
+    $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add new node" and @data-drupal-selector="edit-multi-actions-ief-add"]'));
     $this->assertResponse(200, 'Opening new inline form was successful.');
 
-    $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Create node"]'));
+    $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Create node" and @data-drupal-selector="edit-multi-form-inline-entity-form-actions-ief-add-save"]'));
     $this->assertResponse(200, 'Submitting empty form was successful.');
     $this->assertText('First name field is required.', 'Validation failed for empty "First name" field.');
     $this->assertText('Last name field is required.', 'Validation failed for empty "Last name" field.');
@@ -132,7 +132,7 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
 
     // Create ief_reference_type node in IEF.
     $this->drupalGet($this->formContentAddUrl);
-    $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add new node"]'));
+    $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add new node" and @data-drupal-selector="edit-multi-actions-ief-add"]'));
     $this->assertResponse(200, 'Opening new inline form was successful.');
 
     $edit = [
@@ -140,7 +140,7 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
       'multi[form][inline_entity_form][first_name][0][value]' => 'John',
       'multi[form][inline_entity_form][last_name][0][value]' => 'Doe',
     ];
-    $this->drupalPostAjaxForm(NULL, $edit, $this->getButtonName('//input[@type="submit" and @value="Create node"]'));
+    $this->drupalPostAjaxForm(NULL, $edit, $this->getButtonName('//input[@type="submit" and @value="Create node" and @data-drupal-selector="edit-multi-form-inline-entity-form-actions-ief-add-save"]'));
     $this->assertResponse(200, 'Creating node via inline form was successful.');
 
     // Tests if correct fields appear in the table.
@@ -273,24 +273,43 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
 
     // Create three ief_reference_type entities.
     $referenceNodes = $this->createReferenceContent(3);
-    // Create ief_test_complex node with first ief_reference_type node.
+
+    // Create a node for every bundle available.
+    $bundle_nodes = $this->createNodeForEveryBundle();
+
+    // Create ief_test_complex node with first ief_reference_type node and first
+    // node from bundle nodes.
     $this->drupalCreateNode([
       'type' => 'ief_test_complex',
       'title' => 'Some title',
       'multi' => [1],
+      'all_bundles' => key($bundle_nodes),
     ]);
+    // Remove first node since we already added it.
+    unset($bundle_nodes[key($bundle_nodes)]);
+
     $parent_node = $this->drupalGetNodeByTitle('Some title', TRUE);
 
     // Add remaining existing reference nodes.
     $this->drupalGet('node/' . $parent_node->id() . '/edit');
     for ($i = 2; $i <= 3; $i++) {
-      $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add existing node"]'));
+      $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add existing node" and @data-drupal-selector="edit-multi-actions-ief-add-existing"]'));
       $this->assertResponse(200, 'Opening reference form was successful.');
       $title = 'Some reference ' . $i;
       $edit = [
         'multi[form][entity_id]' => $title . ' (' . $referenceNodes[$title] . ')',
       ];
       $this->drupalPostAjaxForm(NULL, $edit, $this->getButtonName('//input[@type="submit" and @data-drupal-selector="edit-multi-form-actions-ief-reference-save"]'));
+      $this->assertResponse(200, 'Adding new referenced entity was successful.');
+    }
+    // Add all remaining nodes from all bundles.
+    foreach ($bundle_nodes as $id => $title) {
+      $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add existing node" and @data-drupal-selector="edit-all-bundles-actions-ief-add-existing"]'));
+      $this->assertResponse(200, 'Opening reference form was successful.');
+      $edit = [
+        'all_bundles[form][entity_id]' => $title . ' (' . $id . ')',
+      ];
+      $this->drupalPostAjaxForm(NULL, $edit, $this->getButtonName('//input[@type="submit" and @data-drupal-selector="edit-all-bundles-form-actions-ief-reference-save"]'));
       $this->assertResponse(200, 'Adding new referenced entity was successful.');
     }
     // Save the node.
@@ -302,6 +321,13 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
     for ($i = 2; $i <= 3; $i++) {
       $cell = $this->xpath('//table[@id="ief-entity-table-edit-multi-entities"]/tbody/tr[' . $i . ']/td[@class="inline-entity-form-node-label"]');
       $this->assertTrue($cell[0] == 'Some reference ' . $i, 'Found reference node title "Some reference ' . $i .'" in the IEF table.');
+    }
+    // Check if all remaining nodes from all bundles are referenced.
+    $count = 2;
+    foreach ($bundle_nodes as $id => $title) {
+      $cell = $this->xpath('//table[@id="ief-entity-table-edit-all-bundles-entities"]/tbody/tr[' . $count . ']/td[@class="inline-entity-form-node-label"]');
+      $this->assertTrue($cell[0] == $title, 'Found reference node title "' . $title . '" in the IEF table.');
+      $count++;
     }
   }
 
@@ -362,6 +388,24 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
           break;
         }
       }
+    }
+    return $retval;
+  }
+
+  /**
+   * Creates a node for every node bundle.
+   *
+   * @return array
+   *   Array of node titles keyed by ids.
+   */
+  protected function createNodeForEveryBundle() {
+    $retval = [];
+    $bundles = $this->container->get('entity.manager')->getBundleInfo('node');
+    foreach ($bundles as $id => $value) {
+      $this->drupalCreateNode(['type' => $id, 'title' => $value['label']]);
+      $node = $this->drupalGetNodeByTitle($value['label']);
+      $this->assertTrue($node, 'Created node "' . $node->label() . '"');
+      $retval[$node->id()] = $value['label'];
     }
     return $retval;
   }

@@ -50,4 +50,14 @@ content:
       label_plural: ''
     third_party_settings: {  }
     type: inline_entity_form_complex
+  all_bundles:
+    weight: 30
+    settings:
+      match_operator: CONTAINS
+      allow_existing: true
+      override_labels: false
+      label_singular: ''
+      label_plural: ''
+    third_party_settings: {  }
+    type: inline_entity_form_complex
 hidden: {  }
