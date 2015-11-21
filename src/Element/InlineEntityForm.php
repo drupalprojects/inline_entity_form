@@ -84,7 +84,7 @@ class InlineEntityForm extends RenderElement {
       return;
     }
 
-    /** @var \Drupal\inline_entity_form\InlineEntityFormHandlerInterface $ief_handler */
+    /** @var \Drupal\inline_entity_form\InlineFormInterface $ief_handler */
     $ief_handler = \Drupal::entityManager()->getHandler($element['#entity_type'], 'inline_form');
 
     // IEF handler is a must. If one was not assigned to this entity type we can

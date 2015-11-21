@@ -38,7 +38,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   /**
    * The inline entity from handler.
    *
-   * @var \Drupal\inline_entity_form\InlineEntityFormHandlerInterface
+   * @var \Drupal\inline_entity_form\InlineFormInterface
    */
   protected $iefHandler;
 

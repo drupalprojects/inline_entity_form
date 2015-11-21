@@ -1,16 +1,17 @@
 <?php
 
 /**
- * Contains \Drupal\inline_entity_form\InlineEntityForm\NodeInlineEntityFormHandler.
+ * Contains \Drupal\inline_entity_form\Form\NodeInlineForm.
  */
 
-namespace Drupal\inline_entity_form\InlineEntityForm;
+namespace Drupal\inline_entity_form\Form;
+
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Node inline form handler.
  */
-class NodeInlineEntityFormHandler extends EntityInlineEntityFormHandler {
+class NodeInlineForm extends EntityInlineForm {
 
   use StringTranslationTrait;
 

@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Contains \Drupal\inline_entity_form\InlineEntityForm\EntityInlineEntityFormHandler.
+ * Contains \Drupal\inline_entity_form\Form\EntityInlineForm.
  */
 
-namespace Drupal\inline_entity_form\InlineEntityForm;
+namespace Drupal\inline_entity_form\Form;
 
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFormInterface;
@@ -14,14 +14,14 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormState;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\inline_entity_form\InlineEntityFormHandlerInterface;
+use Drupal\inline_entity_form\InlineFormInterface;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Generic entity inline form handler.
  */
-class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface {
+class EntityInlineForm implements InlineFormInterface {
 
   /**
    * Entity manager service.

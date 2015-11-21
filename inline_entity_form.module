@@ -11,7 +11,7 @@
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
-use Drupal\inline_entity_form\InlineEntityForm\EntityInlineEntityFormHandler;
+use Drupal\inline_entity_form\Form\EntityInlineForm;
 
 /**
  * Implements hook_entity_info_alter().
@@ -21,12 +21,12 @@ use Drupal\inline_entity_form\InlineEntityForm\EntityInlineEntityFormHandler;
 function inline_entity_form_entity_type_build(array &$entity_types) {
   /** @var \Drupal\Core\Entity\EntityTypeInterface[] $entity_types */
   if (isset($entity_types['node']) && !$entity_types['node']->getHandlerClass('inline_form')) {
-    $entity_types['node']->setHandlerClass('inline_form', '\Drupal\inline_entity_form\InlineEntityForm\NodeInlineEntityFormHandler');
+    $entity_types['node']->setHandlerClass('inline_form', '\Drupal\inline_entity_form\Form\NodeInlineForm');
   }
 
   foreach ($entity_types as &$entity_type) {
     if (!$entity_type->getHandlerClass('inline_form')) {
-      $entity_type->setHandlerClass('inline_form', '\Drupal\inline_entity_form\InlineEntityForm\EntityInlineEntityFormHandler');
+      $entity_type->setHandlerClass('inline_form', '\Drupal\inline_entity_form\Form\EntityInlineForm');
     }
   }
 }
@@ -125,7 +125,7 @@ function inline_entity_form_reference_form_validate(&$reference_form, FormStateI
 
   $instance = $form_state->get(['inline_entity_form', $ief_id, 'instance']);
   $target_type = $instance->getFieldStorageDefinition()->getSetting('target_type');
-  /** @var \Drupal\inline_entity_form\InlineEntityFormHandlerInterface $handler */
+  /** @var \Drupal\inline_entity_form\InlineFormInterface $handler */
   $handler = \Drupal::entityManager()->getHandler($target_type, 'inline_form');
   $labels = $handler->labels();
 
@@ -235,7 +235,7 @@ function inline_entity_form_close_form($form, FormStateInterface $form_state) {
  */
 function inline_entity_form_cleanup_form_state($form, FormStateInterface $form_state) {
   $element = inline_entity_form_get_element($form, $form_state);
-  EntityInlineEntityFormHandler::submitCleanFormState($element['form']['inline_entity_form'], $form_state);
+  EntityInlineForm::submitCleanFormState($element['form']['inline_entity_form'], $form_state);
 }
 
 /**
@@ -312,7 +312,7 @@ function inline_entity_form_cleanup_row_form_state($form, FormStateInterface $fo
   $element = inline_entity_form_get_element($form, $form_state);
   $delta = $form_state->getTriggeringElement()['#ief_row_delta'];
   $entity_form = $element['entities'][$delta]['form']['inline_entity_form'];
-  EntityInlineEntityFormHandler::submitCleanFormState($entity_form, $form_state);
+  EntityInlineForm::submitCleanFormState($entity_form, $form_state);
 }
 
 /**

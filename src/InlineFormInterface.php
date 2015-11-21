@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\inline_entity_form\InlineEntityFormHandlerInterface.
+ * Contains \Drupal\inline_entity_form\InlineFormInterface.
  */
 
 namespace Drupal\inline_entity_form;
@@ -13,7 +13,7 @@ use Drupal\Core\Form\FormStateInterface;
 /**
  * Defines the interface for entity browser widgets.
  */
-interface InlineEntityFormHandlerInterface extends EntityHandlerInterface {
+interface InlineFormInterface extends EntityHandlerInterface {
 
   /**
    * Returns an array of libraries for the current entity type, keyed by theme
