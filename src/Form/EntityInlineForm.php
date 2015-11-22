@@ -227,32 +227,33 @@ class EntityInlineForm implements InlineFormInterface {
     /** @var \Drupal\Core\Entity\EntityInterface $entity */
     $entity = $entity_form['#entity'];
     $operation = 'default';
-
     $controller = \Drupal::entityManager()->getFormObject($entity->getEntityTypeId(), $operation);
     $controller->setEntity($entity);
-    $child_form_state = static::buildChildFormState($controller, $form_state, $entity, $operation);
 
+    $child_form_state = static::buildChildFormState($controller, $form_state, $entity, $operation);
     $child_form = $entity_form;
     $child_form['#ief_parents'] = $entity_form['#parents'];
-
     $controller->submitForm($child_form, $child_form_state);
-    if ($controller->getEntity() instanceof ContentEntityInterface) {
-      // Entity was validated in entityFormValidate(). This will prevent validation
-      // exception from being thrown.
-      $controller->getEntity()->setValidationRequired(FALSE);
+    $entity = $entity_form['#entity'] = $controller->getEntity();
+
+    // Invoke all specified builders for copying form values to entity
+    // properties.
+    if (isset($entity_form['#entity_builders'])) {
+      foreach ($entity_form['#entity_builders'] as $function) {
+        call_user_func_array($function, [$entity->getEntityTypeId(), $entity, &$child_form, &$child_form_state]);
+      }
     }
-
-    $entity_form['#entity'] = $controller->getEntity();
-
+    if ($entity instanceof ContentEntityInterface) {
+      // The entity was already validated in entityFormValidate().
+      $entity->setValidationRequired(FALSE);
+    }
     if ($entity_form['#save_entity']) {
-      $entity_form['#entity']->save();
+      $entity->save();
     }
-
     // TODO - this is field-only part of the code. Figure out how to refactor.
     if ($child_form_state->has(['inline_entity_form', $entity_form['#ief_id']])) {
-      $form_state->set(['inline_entity_form', $entity_form['#ief_id'], 'entity'], $entity_form['#entity']);
+      $form_state->set(['inline_entity_form', $entity_form['#ief_id'], 'entity'], $entity);
     }
-
   }
 
   /**
