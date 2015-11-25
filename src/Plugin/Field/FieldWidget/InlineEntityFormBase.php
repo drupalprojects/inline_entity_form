@@ -163,12 +163,12 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
     $element = [];
     $element['override_labels'] = [
       '#type' => 'checkbox',
-      '#title' => t('Override labels'),
+      '#title' => $this->t('Override labels'),
       '#default_value' => $this->getSetting('override_labels'),
     ];
     $element['label_singular'] = [
       '#type' => 'textfield',
-      '#title' => t('Singular label'),
+      '#title' => $this->t('Singular label'),
       '#default_value' => $this->getSetting('label_singular'),
       '#states' => [
         'visible' => [
@@ -178,7 +178,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
     ];
     $element['label_plural'] = array(
       '#type' => 'textfield',
-      '#title' => t('Plural label'),
+      '#title' => $this->t('Plural label'),
       '#default_value' => $this->getSetting('label_plural'),
       '#states' => array(
         'visible' => array(
@@ -196,13 +196,13 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   public function settingsSummary() {
     $summary = [];
     if ($this->getSetting('override_labels')) {
-      $summary[] = t(
+      $summary[] = $this->t(
         'Overriden labels are used: %singular and %plural',
         ['%singular' => $this->getSetting('label_singular'), '%plural' => $this->getSetting('label_plural')]
       );
     }
     else {
-      $summary[] = t('Default labels are used.');
+      $summary[] = $this->t('Default labels are used.');
     }
 
     return $summary;

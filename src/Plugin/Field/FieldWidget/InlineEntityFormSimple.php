@@ -41,7 +41,7 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
     if ($items->get($delta)->target_id) {
       $entity = $items->get($delta)->entity;
       if (!$entity) {
-        $element['warning']['#markup'] = t('Unable to load the referenced entity.');
+        $element['warning']['#markup'] = $this->t('Unable to load the referenced entity.');
         return $element;
       }
     }
