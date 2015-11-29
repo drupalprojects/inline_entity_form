@@ -142,7 +142,7 @@ class EntityInlineForm implements InlineFormInterface {
     $operation = 'default';
     $controller = $this->entityManager->getFormObject($entity_form['#entity']->getEntityTypeId(), $operation);
     $controller->setEntity($entity_form['#entity']);
-    $child_form_state = $this->buildChildFormState($controller, $form_state, $entity_form['#entity'], $operation);
+    $child_form_state = $this->buildChildFormState($controller, $form_state, $entity_form['#entity'], $operation, $entity_form['#parents']);
 
     $entity_form = $controller->buildForm($entity_form, $child_form_state);
 
@@ -191,7 +191,7 @@ class EntityInlineForm implements InlineFormInterface {
 
       $controller = \Drupal::entityManager()
         ->getFormObject($entity->getEntityTypeId(), $operation);
-      $child_form_state = static::buildChildFormState($controller, $form_state, $entity, $operation);
+      $child_form_state = static::buildChildFormState($controller, $form_state, $entity, $operation, $entity_form['#parents']);
       $entity_form['#entity'] = $controller->validateForm($entity_form, $child_form_state);
 
       // TODO - this is field-only part of the code. Figure out how to refactor.
@@ -230,7 +230,7 @@ class EntityInlineForm implements InlineFormInterface {
     $controller = \Drupal::entityManager()->getFormObject($entity->getEntityTypeId(), $operation);
     $controller->setEntity($entity);
 
-    $child_form_state = static::buildChildFormState($controller, $form_state, $entity, $operation);
+    $child_form_state = static::buildChildFormState($controller, $form_state, $entity, $operation, $entity_form['#parents']);
     $child_form = $entity_form;
     $child_form['#ief_parents'] = $entity_form['#parents'];
     $controller->submitForm($child_form, $child_form_state);
@@ -274,11 +274,13 @@ class EntityInlineForm implements InlineFormInterface {
    *   Entity object.
    * @param string $operation
    *   Operation that is to be performed in inline form.
+   * @param array $parents
+   *   Entity form #parents.
    *
    * @return \Drupal\Core\Form\FormStateInterface
    *   Child form state object.
    */
-  public static function buildChildFormState(EntityFormInterface $controller, FormStateInterface $form_state, EntityInterface $entity, $operation) {
+  public static function buildChildFormState(EntityFormInterface $controller, FormStateInterface $form_state, EntityInterface $entity, $operation, $parents) {
     $child_form_state = new FormState();
 
     $child_form_state->addBuildInfo('callback_object', $controller);
@@ -289,7 +291,16 @@ class EntityInlineForm implements InlineFormInterface {
     // Copy values to child form.
     $child_form_state->setCompleteForm($form_state->getCompleteForm());
     $child_form_state->setUserInput($form_state->getUserInput());
-    $child_form_state->setValues($form_state->getValues());
+
+    // Filter out all submitted values that are not directly relevant for this
+    // IEF. Otherwise they might mess things up.
+    $form_state_values = $form_state->getValues();
+    foreach (array_keys($form_state_values) as $key) {
+      if ($key !== $parents[0]) {
+        unset($form_state_values[$key]);
+      }
+    }
+    $child_form_state->setValues($form_state_values);
     $child_form_state->setStorage($form_state->getStorage());
     $child_form_state->set('form_display', entity_get_form_display($entity->getEntityTypeId(), $entity->bundle(), $operation));
 

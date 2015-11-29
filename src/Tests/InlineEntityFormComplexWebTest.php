@@ -332,6 +332,67 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
   }
 
   /**
+   * Tests if a referenced content can be edited while the referenced content is
+   * newer than the referencing parent node.
+   */
+  public function testEditedInlineEntityValidation() {
+    $this->setAllowExisting(TRUE);
+
+    // Create referenced content.
+    $referenced_nodes = $this->createReferenceContent(1);
+
+    // Create first referencing node.
+    $this->drupalCreateNode([
+      'type' => 'ief_test_complex',
+      'title' => 'First referencing node',
+      'multi' => array_values($referenced_nodes),
+    ]);
+    $first_node = $this->drupalGetNodeByTitle('First referencing node');
+
+    // Create second referencing node.
+    $this->drupalCreateNode([
+      'type' => 'ief_test_complex',
+      'title' => 'Second referencing node',
+      'multi' => array_values($referenced_nodes),
+    ]);
+    $second_node = $this->drupalGetNodeByTitle('Second referencing node');
+
+    // Edit referenced content in first node.
+    $this->drupalGet('node/' . $first_node->id() . '/edit');
+
+    // Edit referenced node.
+    $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Edit" and @data-drupal-selector="edit-multi-entities-0-actions-ief-entity-edit"]'));
+    $edit = [
+      'multi[form][inline_entity_form][entities][0][form][title][0][value]' => 'Some reference updated',
+    ];
+    $this->drupalPostAjaxForm(NULL, $edit, $this->getButtonName('//input[@type="submit" and @value="Update node" and @data-drupal-selector="edit-multi-form-inline-entity-form-entities-0-form-actions-ief-edit-save"]'));
+
+    // Save the first node after editing the reference.
+    $edit = ['title[0][value]' => 'First node updated'];
+    $this->drupalPostForm(NULL, $edit, t('Save'));
+
+    // The changed value of the referenced content is now newer than the
+    // changed value of the second node.
+
+    // Edit referenced content in second node.
+    $this->drupalGet('node/' . $second_node->id() . '/edit');
+
+    // Edit referenced node.
+    $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Edit" and @data-drupal-selector="edit-multi-entities-0-actions-ief-entity-edit"]'));
+    $edit = [
+      'multi[form][inline_entity_form][entities][0][form][title][0][value]' => 'Some reference updated the second time',
+    ];
+    $this->drupalPostAjaxForm(NULL, $edit, $this->getButtonName('//input[@type="submit" and @value="Update node" and @data-drupal-selector="edit-multi-form-inline-entity-form-entities-0-form-actions-ief-edit-save"]'));
+
+    // Save the second node after editing the reference.
+    $edit = ['title[0][value]' => 'Second node updated'];
+    $this->drupalPostForm(NULL, $edit, t('Save'));
+
+    // Check if the referenced content could be edited.
+    $this->assertNoText('The content has either been modified by another user, or you have already submitted modifications. As a result, your changes cannot be saved.', 'The referenced content could be edited.');
+  }
+
+  /**
    * Creates ief_reference_type nodes which shall serve as reference nodes.
    *
    * @param int $numNodes
