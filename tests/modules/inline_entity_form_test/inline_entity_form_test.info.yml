@@ -8,3 +8,5 @@ dependencies:
   - entity_reference
   - inline_entity_form
   - node
+  - file
+  - image

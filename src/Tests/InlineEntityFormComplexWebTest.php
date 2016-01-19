@@ -160,6 +160,11 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
     $this->assertTrue((bool) $this->xpath('//td[@class="inline-entity-form-node-label" and contains(.,"Some changed reference")]'), 'Node title field appears in the table');
     $this->assertTrue((bool) $this->xpath('//td[@class="inline-entity-form-node-status" and ./div[contains(.,"Published")]]'), 'Node status field appears in the table');
 
+    // Make sure unrelated AJAX submit doesn't save the referenced entity.
+    $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Upload"]'));
+    $node = $this->drupalGetNodeByTitle('Some changed reference');
+    $this->assertFalse($node, 'Referenced node was not saved during unrelated AJAX submit.');
+
     // Create ief_test_complex node.
     $edit = ['title[0][value]' => 'Some title'];
     $this->drupalPostForm(NULL, $edit, t('Save'));

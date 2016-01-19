@@ -7,6 +7,7 @@
 
 namespace Drupal\inline_entity_form\Plugin\Field\FieldWidget;
 
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -404,19 +405,21 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    *   Complete form.
    * @param FormStateInterface $form_state
    *   Form state.
+   *
+   * @return bool
+   *   TRUE if current submit is relevant for this IEF widget and FALSE if not.
    */
   protected function isSubmitRelevant(array $form, FormStateInterface $form_state) {
     $field_name = $this->fieldDefinition->getName();
-    $parents = array_merge($form['#parents'], [$field_name, 'form']);
+    $field_parents = array_slice(array_merge($form['#parents'], [$field_name, 'form']), 0, -1);
 
     $trigger = $form_state->getTriggeringElement();
     if (isset($trigger['#limit_validation_errors']) && $trigger['#limit_validation_errors'] !== FALSE) {
-      $imploded_parents = implode('', array_slice($parents, 0, -1));
       $relevant_sections = array_filter(
         $trigger['#limit_validation_errors'],
-        function ($item) use ($imploded_parents) {
-          $imploded_item = implode('', $item);
-          return strpos($imploded_item, $imploded_parents) !== 0;
+        function ($item) use ($field_parents) {
+          $union = $field_parents + $item;
+          return $union == max(count($item), count($field_parents));
         }
       );
 
