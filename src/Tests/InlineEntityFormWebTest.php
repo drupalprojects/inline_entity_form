@@ -7,6 +7,7 @@
 
 namespace Drupal\inline_entity_form\Tests;
 
+use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\simpletest\WebTestBase;
 
 /**
@@ -29,6 +30,14 @@ class InlineEntityFormWebTest extends WebTestBase {
    * @var \Drupal\user\Entity\User
    */
   protected $user;
+
+  /**
+   * Field config storage.
+   *
+   * @var \Drupal\Core\Config\Entity\ConfigEntityStorage
+   */
+  protected $fieldStorageConfigStorage;
+
   /**
    * Prepares environment for
    */
@@ -41,6 +50,10 @@ class InlineEntityFormWebTest extends WebTestBase {
       'edit any ief_test_custom content',
       'view own unpublished content',
     ]);
+
+    $this->fieldStorageConfigStorage = $this->container
+      ->get('entity_type.manager')
+      ->getStorage('field_storage_config');
   }
 
   /**
@@ -65,17 +78,57 @@ class InlineEntityFormWebTest extends WebTestBase {
    * Tests simple IEF widget with single-value field.
    */
   public function testSimpleSingle() {
-    $this->drupalLogin($this->user);
-    $this->drupalGet('node/add/ief_simple_single');
-
-    $this->assertText('Single node', 'Inline entity field widget title found.');
-    $this->assertText('Reference a single node.', 'Inline entity field description found.');
-
-    $edit = [
-      'title[0][value]' => 'Host node',
-      'single[0][inline_entity_form][title][0][value]' => 'Child node',
+    $cardinality_options = [
+      1 => 1,
+      2 => 2,
+      FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED => 1,
     ];
-    $this->drupalPostForm('node/add/ief_simple_single', $edit, t('Save'));
+    foreach ($cardinality_options as $cardinality => $limit) {
+      /** @var \Drupal\field\FieldStorageConfigInterface $field_storage */
+      $field_storage = $this->fieldStorageConfigStorage->load('node.single');
+      $field_storage->setCardinality($cardinality);
+      $field_storage->save();
+
+      $this->drupalLogin($this->user);
+      $this->drupalGet('node/add/ief_simple_single');
+
+      $this->assertText('Single node', 'Inline entity field widget title found.');
+      $this->assertText('Reference a single node.', 'Inline entity field description found.');
+
+      $edit = ['title[0][value]' => 'Host node'];
+      for ($item_number = 0; $item_number < $limit; $item_number++) {
+        $edit["single[$item_number][inline_entity_form][title][0][value]"] = 'Child node nr.' . $item_number;
+      }
+
+      $this->drupalPostForm('node/add/ief_simple_single', $edit, t('Save'));
+
+      for ($item_number = 0; $item_number < $limit; $item_number++) {
+        $this->assertText('Child node nr.' . $item_number, 'Label of referenced entity found.');
+      }
+    }
+  }
+
+  /**
+   * Gets IEF button name.
+   *
+   * @param array $xpath
+   *   Xpath of the button.
+   *
+   * @return string
+   *   The name of the button.
+   */
+  protected function getButtonName($xpath) {
+    $retval = '';
+    /** @var \SimpleXMLElement[] $elements */
+    if ($elements = $this->xpath($xpath)) {
+      foreach ($elements[0]->attributes() as $name => $value) {
+        if ($name == 'name') {
+          $retval = $value;
+          break;
+        }
+      }
+    }
+    return $retval;
   }
 
 }

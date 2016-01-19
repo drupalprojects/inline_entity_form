@@ -368,6 +368,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    */
   public static function submitSaveEntity($entity_form, FormStateInterface $form_state) {
     $ief_id = $entity_form['#ief_id'];
+    /** @var \Drupal\Core\Entity\EntityInterface $entity */
     $entity = $entity_form['#entity'];
 
     if ($entity_form['#op'] == 'add') {

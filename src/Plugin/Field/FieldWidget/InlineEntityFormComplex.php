@@ -655,6 +655,10 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
         $item['target_id'] = $item['entity']->id();
         $items[] = $item;
       }
+      else {
+        $item['target_id'] = NULL;
+        $items[] = $item;
+      }
     }
 
     // Sort items by _weight.

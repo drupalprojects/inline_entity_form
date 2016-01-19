@@ -1,5 +1,5 @@
 type: ief_test_custom
-name: IEF test cestim
+name: IEF test custom
 description: 'Content type for IEF custom form testing.'
 help: ''
 new_revision: false
