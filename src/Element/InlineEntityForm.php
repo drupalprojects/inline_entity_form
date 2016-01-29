@@ -142,6 +142,7 @@ class InlineEntityForm extends RenderElement {
   public static function attachMainSubmit(&$complete_form) {
     $submit_attached = FALSE;
     $submit = array_merge([[get_called_class(), 'triggerIefSubmit']], $complete_form['#submit']);
+    $submit = array_unique($submit, SORT_REGULAR);
 
     if (!empty($complete_form['submit'])) {
       if (empty($complete_form['submit']['#submit'])) {
@@ -149,6 +150,7 @@ class InlineEntityForm extends RenderElement {
       }
       else {
         $complete_form['submit']['#submit'] = array_merge([[get_called_class(), 'triggerIefSubmit']], $complete_form['submit']['#submit']);
+        $complete_form['submit']['#submit'] = array_unique($complete_form['submit']['#submit'], SORT_REGULAR);
       }
       $complete_form['submit']['#ief_submit_all'] = TRUE;
       $submit_attached = TRUE;
@@ -161,6 +163,7 @@ class InlineEntityForm extends RenderElement {
         }
         else {
           $complete_form['actions'][$action]['#submit'] = array_merge([[get_called_class(), 'triggerIefSubmit']], $complete_form['actions'][$action]['#submit']);
+          $complete_form['actions'][$action]['#submit'] = array_unique($complete_form['actions'][$action]['#submit'], SORT_REGULAR);
         }
         $complete_form['actions'][$action]['#ief_submit_all'] = TRUE;
         $submit_attached = TRUE;
@@ -193,6 +196,7 @@ class InlineEntityForm extends RenderElement {
     foreach (Element::children($element) as $child) {
       if (!empty($element[$child]['#type']) && $element[$child]['#type'] == 'submit' && $element[$child]['#button_type'] == 'preview') {
         $element[$child]['#submit'] = empty($element[$child]['#submit']) ? $submit_callbacks : array_merge($submit_callbacks, $element[$child]['#submit']);
+        $element[$child]['#submit'] = array_unique($element[$child]['#submit'], SORT_REGULAR);
         $element[$child]['#ief_submit_all'] = TRUE;
         return TRUE;
       }

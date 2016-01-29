@@ -298,11 +298,8 @@ class EntityInlineForm implements InlineFormInterface {
     // Filter out all submitted values that are not directly relevant for this
     // IEF. Otherwise they might mess things up.
     $form_state_values = $form_state->getValues();
-    foreach (array_keys($form_state_values) as $key) {
-      if ($key !== $parents[0]) {
-        unset($form_state_values[$key]);
-      }
-    }
+    $form_state_values = static::extractArraySequence($form_state_values, $parents);
+
     $child_form_state->setValues($form_state_values);
     $child_form_state->setStorage($form_state->getStorage());
     $child_form_state->set('form_display', entity_get_form_display($entity->getEntityTypeId(), $entity->bundle(), $operation));
@@ -326,6 +323,34 @@ class EntityInlineForm implements InlineFormInterface {
     $child_form_state->setSubmitHandlers($form_state->getSubmitHandlers());
 
     return $child_form_state;
+  }
+
+  /**
+   * Extracts part of array based on keys in the list.
+   *
+   * Returned array will be a subset of the original, containing only
+   * values whose keys match items from the list.
+   *
+   * @param array $array
+   *   Original array.
+   * @param array $list
+   *   List of keys to be used for extraction.
+   *
+   * @return array
+   *   Extracted array.
+   */
+  static public function extractArraySequence($array, $list) {
+    if ($list) {
+      if (isset($array[$list[0]])) {
+        return [
+          $list[0] => static::extractArraySequence($array[$list[0]], array_slice($list, 1)),
+        ];
+      }
+      else {
+        return [];
+      }
+    }
+    return $array;
   }
 
   /**
