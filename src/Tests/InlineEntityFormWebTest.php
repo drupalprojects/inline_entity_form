@@ -15,7 +15,7 @@ use Drupal\simpletest\WebTestBase;
  *
  * @group inline_entity_form
  */
-class InlineEntityFormWebTest extends WebTestBase {
+class InlineEntityFormWebTest extends InlineEntityFormTestBase {
 
   /**
    * Modules to enable.
@@ -106,29 +106,6 @@ class InlineEntityFormWebTest extends WebTestBase {
         $this->assertText('Child node nr.' . $item_number, 'Label of referenced entity found.');
       }
     }
-  }
-
-  /**
-   * Gets IEF button name.
-   *
-   * @param array $xpath
-   *   Xpath of the button.
-   *
-   * @return string
-   *   The name of the button.
-   */
-  protected function getButtonName($xpath) {
-    $retval = '';
-    /** @var \SimpleXMLElement[] $elements */
-    if ($elements = $this->xpath($xpath)) {
-      foreach ($elements[0]->attributes() as $name => $value) {
-        if ($name == 'name') {
-          $retval = $value;
-          break;
-        }
-      }
-    }
-    return $retval;
   }
 
 }

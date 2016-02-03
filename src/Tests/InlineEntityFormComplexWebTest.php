@@ -14,7 +14,7 @@ use Drupal\simpletest\WebTestBase;
  *
  * @group inline_entity_form
  */
-class InlineEntityFormComplexWebTest extends WebTestBase {
+class InlineEntityFormComplexWebTest extends InlineEntityFormTestBase {
 
   /**
    * Modules to enable.
@@ -433,29 +433,6 @@ class InlineEntityFormComplexWebTest extends WebTestBase {
     $component = $display->getComponent('multi');
     $component['settings']['allow_existing'] = $flag;
     $display->setComponent('multi', $component)->save();
-  }
-
-  /**
-   * Gets IEF button name.
-   *
-   * @param array $xpath
-   *   Xpath of the button.
-   *
-   * @return string
-   *   The name of the button.
-   */
-  protected function getButtonName($xpath) {
-    $retval = '';
-    /** @var \SimpleXMLElement[] $elements */
-    if ($elements = $this->xpath($xpath)) {
-      foreach ($elements[0]->attributes() as $name => $value) {
-        if ($name == 'name') {
-          $retval = $value;
-          break;
-        }
-      }
-    }
-    return $retval;
   }
 
   /**
