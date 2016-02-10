@@ -50,7 +50,7 @@ content:
       label_plural: ''
     third_party_settings: {  }
     type: inline_entity_form_complex
-  field_image:
+  image:
     type: image_image
     weight: 4
     settings:
