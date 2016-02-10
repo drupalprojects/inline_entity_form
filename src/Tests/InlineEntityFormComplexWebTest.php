@@ -7,8 +7,6 @@
 
 namespace Drupal\inline_entity_form\Tests;
 
-use Drupal\simpletest\WebTestBase;
-
 /**
  * IEF complex field widget tests.
  *
@@ -34,7 +32,7 @@ class InlineEntityFormComplexWebTest extends InlineEntityFormTestBase {
    */
   protected $user;
 
-  /*
+  /**
    * URL to add new content.
    *
    * @var string

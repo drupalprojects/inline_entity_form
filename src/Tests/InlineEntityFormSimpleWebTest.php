@@ -8,14 +8,13 @@
 namespace Drupal\inline_entity_form\Tests;
 
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
-use Drupal\simpletest\WebTestBase;
 
 /**
- * Tests the IEF element on a custom form.
+ * Tests the IEF simple widget.
  *
  * @group inline_entity_form
  */
-class InlineEntityFormWebTest extends InlineEntityFormTestBase {
+class InlineEntityFormSimpleWebTest extends InlineEntityFormTestBase {
 
   /**
    * Modules to enable.
