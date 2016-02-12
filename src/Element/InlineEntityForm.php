@@ -153,6 +153,7 @@ class InlineEntityForm extends RenderElement {
         $complete_form['submit']['#submit'] = array_unique($complete_form['submit']['#submit'], SORT_REGULAR);
       }
       $complete_form['submit']['#ief_submit_all'] = TRUE;
+      $complete_form['submit']['#ief_trigger']  = TRUE;
       $submit_attached = TRUE;
     }
 
@@ -165,6 +166,7 @@ class InlineEntityForm extends RenderElement {
           $complete_form['actions'][$action]['#submit'] = array_merge([[get_called_class(), 'triggerIefSubmit']], $complete_form['actions'][$action]['#submit']);
           $complete_form['actions'][$action]['#submit'] = array_unique($complete_form['actions'][$action]['#submit'], SORT_REGULAR);
         }
+        $complete_form['actions'][$action]['#ief_trigger']  = TRUE;
         $complete_form['actions'][$action]['#ief_submit_all'] = TRUE;
         $submit_attached = TRUE;
       }

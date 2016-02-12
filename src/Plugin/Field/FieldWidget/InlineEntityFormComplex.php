@@ -572,7 +572,8 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
       return;
     }
 
-    if (!$this->isSubmitRelevant($form, $form_state)) {
+    $trigger = $form_state->getTriggeringElement();
+    if (empty($trigger['#ief_trigger'])) {
       return;
     }
 
@@ -612,17 +613,21 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
         });
       }
 
-      foreach ($values as $delta => &$item) {
-        /** @var \Drupal\Core\Entity\EntityInterface $entity */
-        $entity = $item['entity'];
-        if (!empty($item['needs_save'])) {
-          $entity->save();
-        }
-        if (!empty($item['delete'])) {
-          $entity->delete();
-          unset($items[$delta]);
+      if (!empty($trigger['#ief_submit_all'])) {
+        foreach ($values as $delta => &$item) {
+          /** @var \Drupal\Core\Entity\EntityInterface $entity */
+          $entity = $item['entity'];
+          if (!empty($item['needs_save'])) {
+            $entity->save();
+          }
+          if (!empty($item['delete'])) {
+            $entity->delete();
+            unset($items[$delta]);
+          }
         }
       }
+
+
 
       // Let the widget massage the submitted values.
       $values = $this->massageFormValues($values, $form, $form_state);
@@ -715,14 +720,10 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
 
     // Add submit handlers depending on operation.
     if ($element['#op'] == 'add') {
-      $element['actions']['ief_add_save']['#submit'] = [
-        ['\Drupal\inline_entity_form\Element\InlineEntityForm', 'triggerIefSubmit'],
-        'inline_entity_form_close_child_forms',
-        'inline_entity_form_close_form',
-      ];
+      static::addSubmitCallbacks($element['actions']['ief_add_save']);
       $element['actions']['ief_add_cancel']['#submit'] = [
-        'inline_entity_form_close_child_forms',
-        'inline_entity_form_close_form',
+        [get_called_class(), 'closeChildForms'],
+        [get_called_class(), 'closeForm'],
         'inline_entity_form_cleanup_form_state',
       ];
     }
@@ -730,13 +731,10 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
       $element['actions']['ief_edit_save']['#ief_row_delta'] = $element['#ief_row_delta'];
       $element['actions']['ief_edit_cancel']['#ief_row_delta'] = $element['#ief_row_delta'];
 
-      $element['actions']['ief_edit_save']['#submit'] = [
-        ['\Drupal\inline_entity_form\Element\InlineEntityForm', 'triggerIefSubmit'],
-        'inline_entity_form_close_child_forms',
-        [get_called_class(), 'submitCloseRow'],
-      ];
+      static::addSubmitCallbacks($element['actions']['ief_edit_save']);
+      $element['actions']['ief_edit_save']['#submit'][] = [get_called_class(), 'submitCloseRow'];
       $element['actions']['ief_edit_cancel']['#submit'] = [
-        'inline_entity_form_close_child_forms',
+        [get_called_class(), 'closeChildForms'],
         [get_called_class(), 'submitCloseRow'],
         'inline_entity_form_cleanup_row_form_state',
       ];
@@ -948,6 +946,53 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
       $instance = $form_state->get(['inline_entity_form', $ief_id, 'instance']);
       $form_state->setError($element, t('!name field is required.', array('!name' => $instance->getLabel())));
     }
+  }
+
+  /**
+   * Button #submit callback: Closes a form in the IEF widget.
+   *
+   * @param $form
+   *   The complete parent form.
+   * @param $form_state
+   *   The form state of the parent form.
+   *
+   * @see inline_entity_form_open_form().
+   */
+  public static function closeForm($form, FormStateInterface $form_state) {
+    $element = inline_entity_form_get_element($form, $form_state);
+    $ief_id = $element['#ief_id'];
+
+    $form_state->setRebuild();
+    $form_state->set(['inline_entity_form', $ief_id, 'form'], NULL);
+  }
+
+  /**
+   * Add common submit callback functions and mark element as a IEF trigger.
+   *
+   * @param $element
+   */
+  public static function addSubmitCallbacks(&$element) {
+    $element['#submit'] = [
+      ['\Drupal\inline_entity_form\Element\InlineEntityForm', 'triggerIefSubmit'],
+      ['\Drupal\inline_entity_form\Plugin\Field\FieldWidget\InlineEntityFormComplex', 'closeForm'],
+    ];
+    $element['#ief_trigger']  = TRUE;
+  }
+
+  /**
+   * Button #submit callback:  Closes all open child forms in the IEF widget.
+   *
+   * Used to ensure that forms in nested IEF widgets are properly closed
+   * when a parent IEF's form gets submitted or cancelled.
+   *
+   * @param $form
+   *   The IEF Form element.
+   * @param FormStateInterface $form_state
+   *   The form state of the parent form.
+   */
+  public static function closeChildForms($form, FormStateInterface &$form_state) {
+    $element = inline_entity_form_get_element($form, $form_state);
+    inline_entity_form_close_all_forms($element, $form_state);
   }
 
 }

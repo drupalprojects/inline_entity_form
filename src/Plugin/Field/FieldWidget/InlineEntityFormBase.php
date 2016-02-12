@@ -396,40 +396,4 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
     }
   }
 
-  /**
-   * Checks if current submit is relevant for IEF.
-   *
-   * We need to save all referenced entities and extract their IDs into field
-   * values.
-   *
-   * @param array $form
-   *   Complete form.
-   * @param FormStateInterface $form_state
-   *   Form state.
-   *
-   * @return bool
-   *   TRUE if current submit is relevant for this IEF widget and FALSE if not.
-   */
-  protected function isSubmitRelevant(array $form, FormStateInterface $form_state) {
-    $field_name = $this->fieldDefinition->getName();
-    $field_parents = array_slice(array_merge($form['#parents'], [$field_name, 'form']), 0, -1);
-
-    $trigger = $form_state->getTriggeringElement();
-    if (isset($trigger['#limit_validation_errors']) && $trigger['#limit_validation_errors'] !== FALSE) {
-      $relevant_sections = array_filter(
-        $trigger['#limit_validation_errors'],
-        function ($item) use ($field_parents) {
-          $union = $field_parents + $item;
-          return $union == max(count($item), count($field_parents));
-        }
-      );
-
-      if (empty($relevant_sections)) {
-        return FALSE;
-      }
-    }
-
-    return TRUE;
-  }
-
 }
