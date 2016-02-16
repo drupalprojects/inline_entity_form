@@ -10,6 +10,4 @@ drupal_ti_ensure_drupal
 # Change to the Drupal directory
 cd "$DRUPAL_TI_DRUPAL_DIR"
 
-# IEF currently requires the following core patch.
-curl -o 2626548_12.patch https://www.drupal.org/files/issues/2626548_12.patch
-patch -p1 < 2626548_12.patch
+# Download and apply core patches here, if needed.
