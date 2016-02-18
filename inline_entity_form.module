@@ -57,7 +57,7 @@ function inline_entity_form_theme() {
  *   The form array containing the embedded form.
  */
 function inline_entity_form_reference_form($handler, $reference_form, &$form_state) {
-  $labels = $handler->labels();
+  $labels = $handler->getEntityTypeLabels();
   $ief_id = $reference_form['#ief_id'];
   /** @var \Drupal\field\Entity\FieldConfig $instance */
   $instance = $form_state->get(['inline_entity_form', $ief_id, 'instance']);
@@ -126,7 +126,7 @@ function inline_entity_form_reference_form_validate(&$reference_form, FormStateI
   $target_type = $instance->getFieldStorageDefinition()->getSetting('target_type');
   /** @var \Drupal\inline_entity_form\InlineFormInterface $handler */
   $handler = \Drupal::entityTypeManager()->getHandler($target_type, 'inline_form');
-  $labels = $handler->labels();
+  $labels = $handler->getEntityTypeLabels();
 
   $form_values = NestedArray::getValue($form_state->getValues(), $reference_form['#parents']);
   $attach_entity = \Drupal::entityTypeManager()->getStorage($entity_type)->load($form_values['entity_id']);

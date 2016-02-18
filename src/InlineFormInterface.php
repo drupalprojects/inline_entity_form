@@ -17,15 +17,24 @@ use Drupal\Core\Form\FormStateInterface;
 interface InlineFormInterface extends EntityHandlerInterface {
 
   /**
-   * Returns an array of entity type labels (singular, plural) fit to be
-   * included in the UI text.
+   * Gets the entity type managed by this handler.
+   *
+   * @return \Drupal\Core\Entity\EntityTypeInterface
+   *   The entity type.
+   */
+  public function getEntityType();
+
+  /**
+   * Gets the entity type labels (singular, plural).
+   *
+   * @todo Remove when #1850080 lands and IEF starts requiring Drupal 8.1.x
    *
    * @return array
-   *   Array containing two values:
-   *     - singular: label for singular form,
-   *     - plural: label for plural form.
+   *   An array with two values:
+   *     - singular: The lowercase singular label.
+   *     - plural: The lowercase plural label.
    */
-  public function labels();
+  public function getEntityTypeLabels();
 
   /**
    * Gets the label of the given entity.
@@ -61,14 +70,6 @@ interface InlineFormInterface extends EntityHandlerInterface {
    *   - delta: If provided, limits the field to just the specified delta.
    */
   public function tableFields($bundles);
-
-  /**
-   * Returns the id of entity type managed by this handler.
-   *
-   * @return string
-   *   The entity type id..
-   */
-  public function entityTypeId();
 
   /**
    * Returns the entity form to be shown through the IEF widget.

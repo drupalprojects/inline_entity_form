@@ -71,7 +71,7 @@ class InlineEntityForm extends RenderElement {
     }
 
     if (empty($element['#entity_type']) && !empty($element['#entity']) && $element['#entity'] instanceof EntityInterface) {
-      $element['#entity_type'] = $element['#entity']->entityTypeId();
+      $element['#entity_type'] = $element['#entity']->getEntityTypeId();
     }
 
     if (empty($element['#bundle']) && !empty($element['#entity']) && $element['#entity'] instanceof EntityInterface) {

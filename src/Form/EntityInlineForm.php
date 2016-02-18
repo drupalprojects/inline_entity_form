@@ -39,11 +39,11 @@ class EntityInlineForm implements InlineFormInterface {
   protected $entityTypeManager;
 
   /**
-   * ID of entity type managed by this handler.
+   * The entity type managed by this handler.
    *
-   * @var string
+   * @var \Drupal\Core\Entity\EntityTypeInterface
    */
-  protected $entityTypeId;
+  protected $entityType;
 
   /**
    * Module handler service.
@@ -60,15 +60,15 @@ class EntityInlineForm implements InlineFormInterface {
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
-   *   Module handler service.
-   * @param string $entity_type_id
-   *   ID of entity type managed by this handler.
+   *   The module handler.
+   * @param \Drupal\Core\Entity\EntityTypeInterface $entity_type
+   *   The entity type.
    */
-  public function __construct(EntityFieldManagerInterface $entity_field_manager, EntityTypeManagerInterface $entity_type_manager, ModuleHandlerInterface $module_handler, $entity_type_id) {
+  public function __construct(EntityFieldManagerInterface $entity_field_manager, EntityTypeManagerInterface $entity_type_manager, ModuleHandlerInterface $module_handler, EntityTypeInterface $entity_type) {
     $this->entityFieldManager = $entity_field_manager;
     $this->entityTypeManager = $entity_type_manager;
     $this->moduleHandler = $module_handler;
-    $this->entityTypeId = $entity_type_id;
+    $this->entityType = $entity_type;
   }
 
   /**
@@ -79,14 +79,21 @@ class EntityInlineForm implements InlineFormInterface {
       $container->get('entity_field.manager'),
       $container->get('entity_type.manager'),
       $container->get('module_handler'),
-      $entity_type->id()
+      $entity_type
     );
   }
 
   /**
    * {@inheritdoc}
    */
-  public function labels() {
+  public function getEntityType() {
+    return $this->entityType;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getEntityTypeLabels() {
     return [
       'singular' => t('entity'),
       'plural' => t('entities'),
@@ -104,14 +111,13 @@ class EntityInlineForm implements InlineFormInterface {
    * {@inheritdoc}
    */
   public function tableFields($bundles) {
-    $info = $this->entityTypeManager->getDefinition($this->entityTypeId());
-    $definitions = $this->entityFieldManager->getBaseFieldDefinitions($this->entityTypeId());
-    $label_key = $info->getKey('label');
+    $definitions = $this->entityFieldManager->getBaseFieldDefinitions($this->entityType->id());
+    $label_key = $this->entityType->getKey('label');
     $label_field_label = t('Label');
     if ($label_key && isset($definitions[$label_key])) {
       $label_field_label = $definitions[$label_key]->getLabel();
     }
-    $bundle_key = $info->getKey('bundle');
+    $bundle_key = $this->entityType->getKey('bundle');
     $bundle_field_label = t('Type');
     if ($bundle_key && isset($definitions[$bundle_key])) {
       $bundle_field_label = $definitions[$bundle_key]->getLabel();
@@ -132,13 +138,6 @@ class EntityInlineForm implements InlineFormInterface {
     }
 
     return $fields;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function entityTypeId() {
-    return $this->entityTypeId;
   }
 
   /**
@@ -269,7 +268,7 @@ class EntityInlineForm implements InlineFormInterface {
    * {@inheritdoc}
    */
   public function delete($ids, $context) {
-    $storage_handler = $this->entityTypeManager->getStorage($this->entityTypeId());
+    $storage_handler = $this->entityTypeManager->getStorage($this->entityType->id());
     $entities = $storage_handler->loadMultiple($ids);
     $storage_handler->delete($entities);
   }

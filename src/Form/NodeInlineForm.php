@@ -18,7 +18,7 @@ class NodeInlineForm extends EntityInlineForm {
   /**
    * {@inheritdoc}
    */
-  public function labels() {
+  public function getEntityTypeLabels() {
     $labels = [
       'singular' => $this->t('node'),
       'plural' => $this->t('nodes'),

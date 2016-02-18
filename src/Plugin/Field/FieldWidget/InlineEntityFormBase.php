@@ -221,14 +221,12 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   }
 
   /**
-   * Returns an array of entity type labels to be included in the UI text.
+   * Gets the entity type managed by this handler.
    *
-   * @return array
-   *   Associative array with the following keys:
-   *   - 'singular': The label for singular form.
-   *   - 'plural': The label for plural form.
+   * @return \Drupal\Core\Entity\EntityTypeInterface
+   *   The entity type.
    */
-  protected function labels() {
+  protected function getEntityTypeLabels() {
     // The admin has specified the exact labels that should be used.
     if ($this->getSetting('override_labels')) {
       return [
@@ -238,7 +236,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
     }
     else {
       $this->initializeIefController();
-      return $this->iefHandler->labels();
+      return $this->iefHandler->getEntityTypeLabels();
     }
   }
 
@@ -299,7 +297,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       // Labels could be overridden in field widget settings. We won't have
       // access to those in static callbacks (#process, ...) so let's add
       // them here.
-      '#ief_labels' => $this->labels(),
+      '#ief_labels' => $this->getEntityTypeLabels(),
       // Identifies the IEF widget to which the form belongs.
       '#ief_id' => $this->getIefId(),
       // Add the pre_render callback that powers the #fieldset form element key,

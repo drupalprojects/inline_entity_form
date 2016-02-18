@@ -102,7 +102,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
   public function settingsForm(array $form, FormStateInterface $form_state) {
     $element = parent::settingsForm($form, $form_state);
 
-    $labels = $this->labels();
+    $labels = $this->getEntityTypeLabels();
     $states_prefix = 'fields[' . $this->fieldDefinition->getName() . '][settings_edit_form][settings]';
     $element['allow_new'] = [
       '#type' => 'checkbox',
@@ -135,7 +135,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
    */
   public function settingsSummary() {
     $summary = parent::settingsSummary();
-    $labels = $this->labels();
+    $labels = $this->getEntityTypeLabels();
 
     if ($this->getSetting('allow_new')) {
       $summary[] = $this->t('New @label can be added.', ['@label' => $labels['plural']]);
@@ -182,7 +182,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     $settings = $this->getSettings();
     $target_type = $this->getFieldSetting('target_type');
     // Get the entity type labels for the UI strings.
-    $labels = $this->labels();
+    $labels = $this->getEntityTypeLabels();
 
     // Build a parents array for this element's values in the form.
     $parents = array_merge($element['#field_parents'], array(
@@ -777,7 +777,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     $entity = $form['#entity'];
     $entity_id = $entity->id();
     $entity_label = $this->iefHandler->getEntityLabel($entity);
-    $labels = $this->labels();
+    $labels = $this->getEntityTypeLabels();
 
     if ($entity_label) {
       $message = $this->t('Are you sure you want to remove %label?', ['%label' => $entity_label]);
