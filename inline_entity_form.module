@@ -370,7 +370,7 @@ function theme_inline_entity_form_entity_table($variables) {
     foreach ($fields as $field_name => $field) {
       $data = '';
       if ($field['type'] == 'label') {
-        $data = $entity->label();
+        $data = $variables['form'][$key]['#label'];
       }
       elseif ($field['type'] == 'field' && $entity->hasField($field_name)) {
         $display_options = array('label' => 'hidden');

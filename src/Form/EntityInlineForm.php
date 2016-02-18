@@ -90,6 +90,13 @@ class EntityInlineForm implements InlineFormInterface {
   /**
    * {@inheritdoc}
    */
+  public function getEntityLabel(EntityInterface $entity) {
+    return $entity->label();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function tableFields($bundles) {
     $info = $this->entityManager->getDefinition($this->entityTypeId());
     $definitions = $this->entityManager->getBaseFieldDefinitions($this->entityTypeId());

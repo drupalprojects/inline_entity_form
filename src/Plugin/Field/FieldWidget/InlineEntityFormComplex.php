@@ -287,6 +287,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
       // Data used by theme_inline_entity_form_entity_table().
       /** @var \Drupal\Core\Entity\EntityInterface $entity */
       $entity = $value['entity'];
+      $element['entities'][$key]['#label'] = $this->iefHandler->getEntityLabel($value['entity']);
       $element['entities'][$key]['#entity'] = $value['entity'];
       $element['entities'][$key]['#needs_save'] = $value['needs_save'];
 
@@ -771,7 +772,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     /** @var \Drupal\Core\Entity\EntityInterface $entity */
     $entity = $form['#entity'];
     $entity_id = $entity->id();
-    $entity_label = $entity->label();
+    $entity_label = $this->iefHandler->getEntityLabel($entity);
     $labels = $this->labels();
 
     if ($entity_label) {
