@@ -7,9 +7,9 @@
 
 namespace Drupal\inline_entity_form\Plugin\Field\FieldWidget;
 
-use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\EntityManagerInterface;
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -30,11 +30,18 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   protected $iefId;
 
   /**
-   * The entity manager.
+   * The entity type bundle info.
    *
-   * @var \Drupal\Core\Entity\EntityManagerInterface
+   * @var \Drupal\Core\Entity\EntityTypeBundleInfoInterface
    */
-  protected $entityManager;
+  protected $entityTypeBundleInfo;
+
+  /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
 
   /**
    * The inline entity from handler.
@@ -56,13 +63,16 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    *   The widget settings.
    * @param array $third_party_settings
    *   Any third party settings.
-   * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
-   *   Entity manager service.
+   * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $entity_type_bundle_info
+   *   The entity type bundle info.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
    */
-  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, array $third_party_settings, EntityManagerInterface $entity_manager) {
+  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, array $third_party_settings, EntityTypeBundleInfoInterface $entity_type_bundle_info, EntityTypeManagerInterface $entity_type_manager) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $third_party_settings);
-    $this->entityManager = $entity_manager;
 
+    $this->entityTypeBundleInfo = $entity_type_bundle_info;
+    $this->entityTypeManager = $entity_type_manager;
     $this->initializeIefController();
   }
 
@@ -76,7 +86,8 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       $configuration['field_definition'],
       $configuration['settings'],
       $configuration['third_party_settings'],
-      $container->get('entity.manager')
+      $container->get('entity_type.bundle.info'),
+      $container->get('entity_type.manager')
     );
   }
 
@@ -86,7 +97,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   protected function initializeIefController() {
     if (!isset($this->iefHandler)) {
       $target_type = $this->fieldDefinition->getFieldStorageDefinition()->getSetting('target_type');
-      $this->iefHandler = $this->entityManager->getHandler($target_type, 'inline_form');
+      $this->iefHandler = $this->entityTypeManager->getHandler($target_type, 'inline_form');
     }
   }
 
@@ -139,7 +150,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
     }
     else {
       // If no target bundles have been specified then all are available.
-      $target_bundles = array_keys($this->entityManager->getBundleInfo($settings['target_type']));
+      $target_bundles = array_keys($this->entityTypeBundleInfo->getBundleInfo($settings['target_type']));
     }
 
     return $target_bundles;

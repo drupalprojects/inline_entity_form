@@ -85,7 +85,7 @@ class InlineEntityForm extends RenderElement {
     }
 
     /** @var \Drupal\inline_entity_form\InlineFormInterface $ief_handler */
-    $ief_handler = \Drupal::entityManager()->getHandler($element['#entity_type'], 'inline_form');
+    $ief_handler = \Drupal::entityTypeManager()->getHandler($element['#entity_type'], 'inline_form');
 
     // IEF handler is a must. If one was not assigned to this entity type we can
     // not proceed.
@@ -101,7 +101,7 @@ class InlineEntityForm extends RenderElement {
           'langcode' => $element['#language'],
         ];
 
-        $bundle_key = \Drupal::entityManager()
+        $bundle_key = \Drupal::entityTypeManager()
           ->getDefinition($element['#entity_type'])
           ->getKey('bundle');
 
@@ -109,7 +109,7 @@ class InlineEntityForm extends RenderElement {
           $values[$bundle_key] = $element['#bundle'];
         }
 
-        $element['#entity'] = \Drupal::entityManager()
+        $element['#entity'] = \Drupal::entityTypeManager()
           ->getStorage($element['#entity_type'])
           ->create($values);
       }

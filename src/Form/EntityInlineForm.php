@@ -9,13 +9,14 @@ namespace Drupal\inline_entity_form\Form;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFormInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormState;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\inline_entity_form\InlineFormInterface;
-use Drupal\Core\Entity\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -24,11 +25,18 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class EntityInlineForm implements InlineFormInterface {
 
   /**
-   * Entity manager service.
+   * The entity field manager.
    *
-   * @var \Drupal\Core\Entity\EntityManagerInterface
+   * @var \Drupal\Core\Entity\EntityFieldManagerInterface
    */
-  protected $entityManager;
+  protected $entityFieldManager;
+
+  /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
 
   /**
    * ID of entity type managed by this handler.
@@ -47,21 +55,18 @@ class EntityInlineForm implements InlineFormInterface {
   /**
    * Constructs the inline entity form controller.
    *
-   * @param array $configuration
-   *   A configuration array containing information about the plugin instance.
-   * @param string $plugin_id
-   *   The plugin_id for the plugin instance.
-   * @param mixed $plugin_definition
-   *   The plugin implementation definition.
-   * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
-   *   Entity manager service.
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entity_field_manager
+   *   The entity field manager.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   Module handler service.
    * @param string $entity_type_id
    *   ID of entity type managed by this handler.
    */
-  public function __construct(EntityManagerInterface $entity_manager, ModuleHandlerInterface $module_handler, $entity_type_id) {
-    $this->entityManager = $entity_manager;
+  public function __construct(EntityFieldManagerInterface $entity_field_manager, EntityTypeManagerInterface $entity_type_manager, ModuleHandlerInterface $module_handler, $entity_type_id) {
+    $this->entityFieldManager = $entity_field_manager;
+    $this->entityTypeManager = $entity_type_manager;
     $this->moduleHandler = $module_handler;
     $this->entityTypeId = $entity_type_id;
   }
@@ -71,7 +76,8 @@ class EntityInlineForm implements InlineFormInterface {
    */
   public static function createInstance(ContainerInterface $container, EntityTypeInterface $entity_type) {
     return new static(
-      $container->get('entity.manager'),
+      $container->get('entity_field.manager'),
+      $container->get('entity_type.manager'),
       $container->get('module_handler'),
       $entity_type->id()
     );
@@ -98,8 +104,8 @@ class EntityInlineForm implements InlineFormInterface {
    * {@inheritdoc}
    */
   public function tableFields($bundles) {
-    $info = $this->entityManager->getDefinition($this->entityTypeId());
-    $definitions = $this->entityManager->getBaseFieldDefinitions($this->entityTypeId());
+    $info = $this->entityTypeManager->getDefinition($this->entityTypeId());
+    $definitions = $this->entityFieldManager->getBaseFieldDefinitions($this->entityTypeId());
     $label_key = $info->getKey('label');
     $label_field_label = t('Label');
     if ($label_key && isset($definitions[$label_key])) {
@@ -140,7 +146,7 @@ class EntityInlineForm implements InlineFormInterface {
    */
   public function entityForm($entity_form, FormStateInterface $form_state) {
     $operation = 'default';
-    $controller = $this->entityManager->getFormObject($entity_form['#entity']->getEntityTypeId(), $operation, FALSE);
+    $controller = $this->entityTypeManager->getFormObject($entity_form['#entity']->getEntityTypeId(), $operation, FALSE);
     $controller->setEntity($entity_form['#entity']);
     $form_state->set(['inline_entity_form', $entity_form['#ief_id'], 'entity_form'], $controller);
 
@@ -263,7 +269,9 @@ class EntityInlineForm implements InlineFormInterface {
    * {@inheritdoc}
    */
   public function delete($ids, $context) {
-    entity_delete_multiple($this->entityTypeId(), $ids);
+    $storage_handler = $this->entityTypeManager->getStorage($this->entityTypeId());
+    $entities = $storage_handler->loadMultiple($ids);
+    $storage_handler->delete($entities);
   }
 
   /**
@@ -302,7 +310,8 @@ class EntityInlineForm implements InlineFormInterface {
 
     $child_form_state->setValues($form_state_values);
     $child_form_state->setStorage($form_state->getStorage());
-    $child_form_state->set('form_display', entity_get_form_display($entity->getEntityTypeId(), $entity->bundle(), $operation));
+    $value = \Drupal::entityTypeManager()->getStorage('entity_form_display')->load($entity->getEntityTypeId() . '.' . $entity->bundle() . '.' . $operation);
+    $child_form_state->set('form_display', $value);
 
     // Since some of the submit handlers are run, redirects need to be disabled.
     $child_form_state->disableRedirect();
@@ -367,14 +376,14 @@ class EntityInlineForm implements InlineFormInterface {
    *   The form state of the parent form.
    */
   public static function submitCleanFormState(&$entity_form, FormStateInterface $form_state) {
-    $info = \Drupal::entityManager()->getDefinition($entity_form['#entity_type']);
+    $info = \Drupal::entityTypeManager()->getDefinition($entity_form['#entity_type']);
     if (!$info->get('field_ui_base_route')) {
       // The entity type is not fieldable, nothing to cleanup.
       return;
     }
 
     $bundle = $entity_form['#entity']->bundle();
-    $instances = \Drupal::entityManager()->getFieldDefinitions($entity_form['#entity_type'], $bundle);
+    $instances = \Drupal::service('entity_field.manager')->getFieldDefinitions($entity_form['#entity_type'], $bundle);
     foreach ($instances as $instance) {
       $field_name = $instance->getName();
       if (!empty($entity_form[$field_name]['#parents'])) {

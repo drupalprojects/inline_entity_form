@@ -9,7 +9,8 @@ namespace Drupal\inline_entity_form\Plugin\Field\FieldWidget;
 
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Component\Utility\SortArray;
-use Drupal\Core\Entity\EntityManagerInterface;
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
@@ -53,13 +54,15 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
    *   The widget settings.
    * @param array $third_party_settings
    *   Any third party settings.
-   * @param \Drupal\Core\Entity\EntityManager $entity_manager
-   *   Entity manager service.
+   * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $entity_type_bundle_info
+   *   The entity type bundle info.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   Module handler service.
    */
-  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, array $third_party_settings, EntityManagerInterface $entity_manager, ModuleHandlerInterface $module_handler) {
-    parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $third_party_settings, $entity_manager);
+  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, array $third_party_settings, EntityTypeBundleInfoInterface $entity_type_bundle_info, EntityTypeManagerInterface $entity_type_manager, ModuleHandlerInterface $module_handler) {
+    parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $third_party_settings, $entity_type_bundle_info, $entity_type_manager);
     $this->moduleHandler = $module_handler;
   }
 
@@ -73,7 +76,8 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
       $configuration['field_definition'],
       $configuration['settings'],
       $configuration['third_party_settings'],
-      $container->get('entity.manager'),
+      $container->get('entity_type.bundle.info'),
+      $container->get('entity_type.manager'),
       $container->get('module_handler')
     );
   }
@@ -453,7 +457,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
         // Let the user select the bundle, if multiple are available.
         if ($target_bundles_count > 1) {
           $bundles = array();
-          foreach ($this->entityManager->getBundleInfo($target_type) as $bundle_name => $bundle_info) {
+          foreach ($this->entityTypeBundleInfo->getBundleInfo($target_type) as $bundle_name => $bundle_info) {
             if (in_array($bundle_name, $target_bundles)) {
               $bundles[$bundle_name] = $bundle_info['label'];
             }
@@ -872,7 +876,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     $entity = $element['entities'][$delta]['form']['#entity'];
     $entity_id = $entity->id();
 
-    $widget = \Drupal::entityManager()
+    $widget = \Drupal::entityTypeManager()
       ->getStorage('entity_form_display')
       ->load($instance->getTargetEntityTypeId() . '.' . $instance->getTargetBundle() . '.default')
       ->getComponent($instance->getName());
