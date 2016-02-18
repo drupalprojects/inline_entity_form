@@ -16,25 +16,6 @@ use Drupal\Core\Form\FormStateInterface;
 interface InlineFormInterface extends EntityHandlerInterface {
 
   /**
-   * Returns an array of libraries for the current entity type, keyed by theme
-   * name.
-   *
-   * If provided, the "base" library is included for all themes. If a library
-   * matching the current theme exists, it will also be included.
-   *
-   * @code
-   * return [
-   *   'base' => 'test_module/inline_entity_form.base',
-   *   'seven' => 'test_module/inline_entity_form.seven',
-   * ];
-   * @endcode
-   *
-   * @return array
-   *   List of libraries for inclusion keyed by theme name.
-   */
-  public function libraries();
-
-  /**
    * Returns an array of entity type labels (singular, plural) fit to be
    * included in the UI text.
    *

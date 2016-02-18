@@ -80,13 +80,6 @@ class EntityInlineForm implements InlineFormInterface {
   /**
    * {@inheritdoc}
    */
-  public function libraries() {
-    return [];
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function labels() {
     return [
       'singular' => t('entity'),
