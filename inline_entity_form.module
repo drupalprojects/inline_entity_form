@@ -67,7 +67,8 @@ function inline_entity_form_reference_form($handler, $reference_form, &$form_sta
     '#type' => 'entity_autocomplete',
     '#title' => t('@label', array('@label' => ucwords($labels['singular']))),
     '#target_type' => $instance->getSetting('target_type'),
-    '#selection_settings' => ['target_bundles' => $instance->getSetting('handler_settings')['target_bundles']],
+    '#selection_handler' => $instance->getSetting('handler'),
+    '#selection_settings' => $instance->getSetting('handler_settings'),
     '#required' => TRUE,
     '#maxlength' => 255,
   );
