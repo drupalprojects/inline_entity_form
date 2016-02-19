@@ -40,11 +40,16 @@ class InlineEntityForm extends RenderElement {
       '#display_actions' => FALSE,
       // Will save entity on submit if set to TRUE.
       '#save_entity' => TRUE,
-      '#ief_element_submit' => [],
       // Needs to be set to FALSE if one wants to implement it's own submit logic.
       '#handle_submit' => TRUE,
       '#process' => [
         [$class, 'processEntityForm'],
+      ],
+      '#element_validate' => [
+        [$class, 'validateEntityForm'],
+      ],
+      '#ief_element_submit' => [
+        [$class, 'submitEntityForm'],
       ],
       '#theme_wrappers' => ['container'],
       // Allow inline forms to use the #fieldset key.
@@ -117,6 +122,32 @@ class InlineEntityForm extends RenderElement {
     }
 
     return $entity_form;
+  }
+
+  /**
+   * Validates the entity form using the inline form handler.
+   *
+   * @param array $entity_form
+   *   The entity form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   */
+  public static function validateEntityForm($entity_form, FormStateInterface $form_state) {
+    $inline_form_handler = static::getInlineFormHandler($entity_form['#entity_type']);
+    $inline_form_handler->entityFormValidate($entity_form, $form_state);
+  }
+
+  /**
+   * Handles the submission of the entity form using the inline form handler.
+   *
+   * @param array $entity_form
+   *   The entity form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   */
+  public static function submitEntityForm(&$entity_form, FormStateInterface $form_state) {
+    $inline_form_handler = static::getInlineFormHandler($entity_form['#entity_type']);
+    $inline_form_handler->entityFormSubmit($entity_form, $form_state);
   }
 
   /**

@@ -261,7 +261,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
 
     // Build the "Multiple value" widget.
     // TODO - does this belong in #element_validate?
-    $element['#element_validate'] =[[get_class($this), 'updateRowWeights']];
+    $element['#element_validate'][] = [get_class($this), 'updateRowWeights'];
     // Add the required element marker & validation.
     if ($element['#required']) {
       $element['#element_validate'][] = [get_class($this), 'requiredField'];

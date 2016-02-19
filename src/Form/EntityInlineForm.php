@@ -146,15 +146,13 @@ class EntityInlineForm implements InlineFormInterface {
   public function entityForm($entity_form, FormStateInterface $form_state) {
     /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
     $entity = $entity_form['#entity'];
-    $form_display = static::getFormDisplay($entity);
+    $form_display = $this->getFormDisplay($entity);
     $form_display->buildForm($entity, $entity_form, $form_state);
 
     if (!$entity_form['#display_actions']) {
       unset($entity_form['actions']);
     }
 
-    $entity_form['#element_validate'][] = [get_class($this), 'entityFormValidate'];
-    $entity_form['#ief_element_submit'][] = [get_class($this), 'entityFormSubmit'];
     $entity_form['#ief_element_submit'][] = [get_class($this), 'submitCleanFormState'];
 
     // Allow other modules to alter the form.
@@ -166,7 +164,7 @@ class EntityInlineForm implements InlineFormInterface {
   /**
    * {@inheritdoc}
    */
-  public static function entityFormValidate($entity_form, FormStateInterface $form_state) {
+  public function entityFormValidate($entity_form, FormStateInterface $form_state) {
     // We only do full entity validation if entire entity is to be saved, which
     // means it should be complete. Don't validate for other requests (like file
     // uploads, etc.).
@@ -180,8 +178,8 @@ class EntityInlineForm implements InlineFormInterface {
     if ($validate) {
       /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
       $entity = $entity_form['#entity'];
-      static::buildEntity($entity_form, $entity, $form_state);
-      static::getFormDisplay($entity)->validateFormValues($entity, $entity_form, $form_state);
+      $this->buildEntity($entity_form, $entity, $form_state);
+      $this->getFormDisplay($entity)->validateFormValues($entity, $entity_form, $form_state);
 
       // TODO - this is field-only part of the code. Figure out how to refactor.
       if ($form_state->has(['inline_entity_form', $entity_form['#ief_id']])) {
@@ -199,11 +197,11 @@ class EntityInlineForm implements InlineFormInterface {
   /**
    * {@inheritdoc}
    */
-  public static function entityFormSubmit(&$entity_form, FormStateInterface $form_state) {
+  public function entityFormSubmit(&$entity_form, FormStateInterface $form_state) {
     $form_state->cleanValues();
     /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
     $entity = $entity_form['#entity'];
-    static::buildEntity($entity_form, $entity, $form_state);
+    $this->buildEntity($entity_form, $entity, $form_state);
 
     if ($entity_form['#save_entity']) {
       // The entity was already validated in entityFormValidate().
@@ -235,8 +233,8 @@ class EntityInlineForm implements InlineFormInterface {
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The current state of the form.
    */
-  protected static function buildEntity(array $entity_form, ContentEntityInterface $entity, FormStateInterface $form_state) {
-    static::getFormDisplay($entity)->extractFormValues($entity, $entity_form, $form_state);
+  protected function buildEntity(array $entity_form, ContentEntityInterface $entity, FormStateInterface $form_state) {
+    $this->getFormDisplay($entity)->extractFormValues($entity, $entity_form, $form_state);
     // Invoke all specified builders for copying form values to entity fields.
     if (isset($entity_form['#entity_builders'])) {
       foreach ($entity_form['#entity_builders'] as $function) {
@@ -289,7 +287,7 @@ class EntityInlineForm implements InlineFormInterface {
    * @return \Drupal\Core\Entity\Display\EntityFormDisplayInterface
    *   The form display.
    */
-  protected static function getFormDisplay(ContentEntityInterface $entity) {
+  protected function getFormDisplay(ContentEntityInterface $entity) {
     return EntityFormDisplay::collectRenderDisplay($entity, 'default');
   }
 
