@@ -55,86 +55,89 @@ class InlineEntityForm extends RenderElement {
   }
 
   /**
-   * Uses inline entity form handler to add inline form to the structure.
+   * Builds the entity form using the inline form handler.
    *
-   * @param array $element
-   *   An associative array containing the properties of the element.
+   * @param array $entity_form
+   *   The entity form.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The current state of the form.
    * @param array $complete_form
    *   The complete form structure.
    *
    * @return array
-   *   The processed element.
-   *
-   * @see self::preRenderAjaxForm()
+   *   The built entity form.
    */
-  public static function processEntityForm($element, FormStateInterface $form_state, &$complete_form) {
-    if (empty($element['#ief_id'])) {
-      $element['#ief_id'] = \Drupal::service('uuid')->generate();
+  public static function processEntityForm($entity_form, FormStateInterface $form_state, &$complete_form) {
+    if (empty($entity_form['#ief_id'])) {
+      $entity_form['#ief_id'] = \Drupal::service('uuid')->generate();
     }
-
-    if (empty($element['#entity_type']) && !empty($element['#entity']) && $element['#entity'] instanceof EntityInterface) {
-      $element['#entity_type'] = $element['#entity']->getEntityTypeId();
+    if (empty($entity_form['#entity_type']) && !empty($entity_form['#entity']) && $entity_form['#entity'] instanceof EntityInterface) {
+      $entity_form['#entity_type'] = $entity_form['#entity']->getEntityTypeId();
     }
-
-    if (empty($element['#bundle']) && !empty($element['#entity']) && $element['#entity'] instanceof EntityInterface) {
-      $element['#bundle'] = $element['#entity']->bundle();
+    if (empty($entity_form['#bundle']) && !empty($entity_form['#entity']) && $entity_form['#entity'] instanceof EntityInterface) {
+      $entity_form['#bundle'] = $entity_form['#entity']->bundle();
     }
 
     // We can't do anything useful if we don't know which entity type/ bundle
     // we're supposed to operate with.
-    if (empty($element['#entity_type']) || empty($element['#bundle'])) {
-      return;
-    }
-
-    /** @var \Drupal\inline_entity_form\InlineFormInterface $ief_handler */
-    $ief_handler = \Drupal::entityTypeManager()->getHandler($element['#entity_type'], 'inline_form');
-
-    // IEF handler is a must. If one was not assigned to this entity type we can
-    // not proceed.
-    if (empty($ief_handler)) {
-      return;
+    if (empty($entity_form['#entity_type']) || empty($entity_form['#bundle'])) {
+      return $entity_form;
     }
 
     // If entity object is not there we're displaying the add form. We need to
     // create a new entity to be used with it.
-    if (empty($element['#entity'])) {
-      if ($element['#op'] == 'add') {
+    if (empty($entity_form['#entity'])) {
+      if ($entity_form['#op'] == 'add') {
+        $entity_type = \Drupal::entityTypeManager()->getDefinition($entity_form['#entity_type']);
+        $storage = \Drupal::entityTypeManager()->getStorage($entity_form['#entity_type']);
         $values = [
-          'langcode' => $element['#language'],
+          'langcode' => $entity_form['#language'],
         ];
-
-        $bundle_key = \Drupal::entityTypeManager()
-          ->getDefinition($element['#entity_type'])
-          ->getKey('bundle');
-
-        if ($bundle_key) {
-          $values[$bundle_key] = $element['#bundle'];
+        if ($bundle_key = $entity_type->getKey('bundle')) {
+          $values[$bundle_key] = $entity_form['#bundle'];
         }
-
-        $element['#entity'] = \Drupal::entityTypeManager()
-          ->getStorage($element['#entity_type'])
-          ->create($values);
+        $entity_form['#entity'] = $storage->create($values);
       }
     }
 
     // Put some basic information about IEF into form state.
-    $state = $form_state->has(['inline_entity_form', $element['#ief_id']]) ? $form_state->get(['inline_entity_form', $element['#ief_id']]) : [];
+    $state = $form_state->has(['inline_entity_form', $entity_form['#ief_id']]) ? $form_state->get(['inline_entity_form', $entity_form['#ief_id']]) : [];
     $state += [
-      'op' => $element['#op'],
-      'entity' => $element['#entity'],
+      'op' => $entity_form['#op'],
+      'entity' => $entity_form['#entity'],
     ];
-    $form_state->set(['inline_entity_form', $element['#ief_id']], $state);
+    $form_state->set(['inline_entity_form', $entity_form['#ief_id']], $state);
 
-    $element = $ief_handler->entityForm($element, $form_state);
+    $inline_form_handler = static::getInlineFormHandler($entity_form['#entity_type']);
+    $entity_form = $inline_form_handler->entityForm($entity_form, $form_state);
 
     // Attach submit callbacks to main submit buttons.
-    if ($element['#handle_submit']) {
+    if ($entity_form['#handle_submit']) {
       static::attachMainSubmit($complete_form);
     }
 
-    return $element;
+    return $entity_form;
+  }
+
+  /**
+   * Gets the inline form handler for the given entity type.
+   *
+   * @param string $entity_type
+   *   The entity type id.
+   *
+   * @throws \InvalidArgumentException
+   *   Thrown when the entity type has no inline form handler defined.
+   *
+   * @return \Drupal\inline_entity_form\InlineFormInterface
+   *   The inline form handler.
+   */
+  public static function getInlineFormHandler($entity_type) {
+    $inline_form_handler = \Drupal::entityTypeManager()->getHandler($entity_type, 'inline_form');
+    if (empty($inline_form_handler)) {
+      throw new \InvalidArgumentException(sprintf('The %s entity type has no inline form handler.', $entity_type));
+    }
+
+    return $inline_form_handler;
   }
 
   /**
