@@ -275,7 +275,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
 
     // Get the fields that should be displayed in the table.
     $target_bundles = $this->getTargetBundles();
-    $fields = $this->iefHandler->tableFields($target_bundles);
+    $fields = $this->iefHandler->getTableFields($target_bundles);
     $context = array(
       'parent_entity_type' => $this->fieldDefinition->getTargetEntityTypeId(),
       'parent_bundle' => $this->fieldDefinition->getTargetBundle(),

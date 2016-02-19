@@ -48,28 +48,29 @@ interface InlineFormInterface extends EntityHandlerInterface {
   public function getEntityLabel(EntityInterface $entity);
 
   /**
-   * Returns an array of fields used to represent an entity in the IEF table.
-   *
-   * The fields can be either Field API fields or properties defined through
-   * hook_entity_property_info().
+   * Gets the fields used to represent an entity in the IEF table.
    *
    * Modules can alter the output of this method through
    * hook_inline_entity_form_table_fields_alter().
    *
-   * @param array $bundles
+   * @param string[] $bundles
    *   An array of allowed bundles for this widget.
    *
    * @return array
-   *   An array of field information, keyed by field name. Allowed keys:
-   *   - type: 'field' or 'property',
-   *   - label: Human readable name of the field, shown to the user.
-   *   - weight: The position of the field relative to other fields.
-   *   Special keys for type 'field', all optional:
-   *   - formatter: The formatter used to display the field, or "hidden".
-   *   - settings: An array passed to the formatter. If empty, defaults are used.
-   *   - delta: If provided, limits the field to just the specified delta.
+   *   An array of fields keyed by field name. Each field is represented by an
+   *   associative array containing the following keys:
+   *   - type: 'label', 'field' or 'callback'.
+   *   - label: the title of the table field's column in the IEF table.
+   *   - weight: the sort order of the column in the IEF table.
+   *   - display_options: (optional) used for 'field' type table fields, an
+   *     array of display settings. See EntityViewBuilderInterface::viewField().
+   *   - callback: for 'callback' type table fields, a callable that returns a
+   *     renderable array.
+   *   - callback_arguments: (optional) an array of additional arguments to pass
+   *     to the callback. The entity and the theme variables are always passed
+   *     as as the first two arguments.
    */
-  public function tableFields($bundles);
+  public function getTableFields($bundles);
 
   /**
    * Returns the entity form to be shown through the IEF widget.
