@@ -94,9 +94,10 @@ class EntityInlineForm implements InlineFormInterface {
    * {@inheritdoc}
    */
   public function getEntityTypeLabels() {
+    $lowercase_label = $this->entityType->getLowercaseLabel();
     return [
-      'singular' => t('entity'),
-      'plural' => t('entities'),
+      'singular' => $lowercase_label,
+      'plural' => t('@entity_type entities', ['@entity_type' => $lowercase_label]),
     ];
   }
 
