@@ -47,6 +47,10 @@ class InlineEntityForm extends RenderElement {
         [$class, 'processEntityForm'],
       ],
       '#theme_wrappers' => ['container'],
+      // Allow inline forms to use the #fieldset key.
+      '#pre_render' => [
+        [$class, 'addFieldsetMarkup'],
+      ],
     ];
   }
 
@@ -256,6 +260,41 @@ class InlineEntityForm extends RenderElement {
         $function($elements, $form_state);
       }
     }
+  }
+
+  /**
+   * Pre-render callback: Move form elements into fieldsets.
+   *
+   * Inline forms use #tree = TRUE to keep their values in a hierarchy for
+   * easier storage. Moving the form elements into fieldsets during form
+   * building would break up that hierarchy, so it's not an option for entity
+   * fields. Therefore, we wait until the pre_render stage, where any changes
+   * we make affect presentation only and aren't reflected in $form_state.
+   */
+  public static function addFieldsetMarkup($form) {
+    $sort = [];
+    foreach (Element::children($form) as $key) {
+      $element = $form[$key];
+      // In our form builder functions, we added an arbitrary #fieldset property
+      // to any element that belongs in a fieldset. If this form element has that
+      // property, move it into its fieldset.
+      if (isset($element['#fieldset']) && isset($form[$element['#fieldset']])) {
+        $form[$element['#fieldset']][$key] = $element;
+        // Remove the original element this duplicates.
+        unset($form[$key]);
+        // Mark the fieldset for sorting.
+        if (!in_array($key, $sort)) {
+          $sort[] = $element['#fieldset'];
+        }
+      }
+    }
+
+    // Sort all fieldsets, so that element #weight stays respected.
+    foreach ($sort as $key) {
+      uasort($form[$key], '\Drupal\Component\Utility\SortArray::sortByWeightProperty');
+    }
+
+    return $form;
   }
 
 }

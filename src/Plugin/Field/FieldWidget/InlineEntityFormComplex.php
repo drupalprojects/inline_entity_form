@@ -537,10 +537,6 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
           '#entity_type' => $target_type,
           // Pass the langcode of the parent entity,
           '#parent_language' => $parent_langcode,
-          // Add the pre_render callback that powers the #fieldset form element key,
-          // which moves the element to the specified fieldset without modifying its
-          // position in $form_state->get('values').
-          '#pre_render' => [[get_class($this), 'addFieldsetMarkup']],
         );
 
         $element['form'] += inline_entity_form_reference_form($this->iefHandler, $element['form'], $form_state);

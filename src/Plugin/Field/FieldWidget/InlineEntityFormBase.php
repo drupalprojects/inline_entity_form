@@ -300,10 +300,6 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       '#ief_labels' => $this->getEntityTypeLabels(),
       // Identifies the IEF widget to which the form belongs.
       '#ief_id' => $this->getIefId(),
-      // Add the pre_render callback that powers the #fieldset form element key,
-      // which moves the element to the specified fieldset without modifying its
-      // position in $form_state->get('values').
-      '#pre_render' => [[get_class($this), 'addFieldsetMarkup']],
     ];
 
     if ($entity) {
@@ -327,41 +323,6 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   public static function addIefSubmitCallbacks($element) {
     $element['#ief_element_submit'][] = [get_called_class(), 'submitSaveEntity'];
     return $element;
-  }
-
-  /**
-   * Pre-render callback: Move form elements into fieldsets for presentation purposes.
-   *
-   * Inline forms use #tree = TRUE to keep their values in a hierarchy for
-   * easier storage. Moving the form elements into fieldsets during form building
-   * would break up that hierarchy, so it's not an option for Field API fields.
-   * Therefore, we wait until the pre_render stage, where any changes we make
-   * affect presentation only and aren't reflected in $form_state->getValues().
-   */
-  public static function addFieldsetMarkup($form) {
-    $sort = [];
-    foreach (Element::children($form) as $key) {
-      $element = $form[$key];
-      // In our form builder functions, we added an arbitrary #fieldset property
-      // to any element that belongs in a fieldset. If this form element has that
-      // property, move it into its fieldset.
-      if (isset($element['#fieldset']) && isset($form[$element['#fieldset']])) {
-        $form[$element['#fieldset']][$key] = $element;
-        // Remove the original element this duplicates.
-        unset($form[$key]);
-        // Mark the fieldset for sorting.
-        if (!in_array($key, $sort)) {
-          $sort[] = $element['#fieldset'];
-        }
-      }
-    }
-
-    // Sort all fieldsets, so that element #weight stays respected.
-    foreach ($sort as $key) {
-      uasort($form[$key], 'element_sort');
-    }
-
-    return $form;
   }
 
   /**
