@@ -213,19 +213,6 @@ class EntityInlineForm implements InlineFormInterface {
         $form_state->setError($triggering_element, $message);
       }
     }
-
-    // Unset un-triggered conditional fields errors
-    $errors = $form_state->getErrors();
-    $conditional_fields_untriggered_dependents = $form_state->get('conditional_fields_untriggered_dependents');
-    if ($errors && !empty($conditional_fields_untriggered_dependents)) {
-      foreach ($conditional_fields_untriggered_dependents as $untriggered_dependents) {
-        if (!empty($untriggered_dependents['errors'])) {
-          foreach (array_keys($untriggered_dependents['errors']) as $key) {
-            unset($errors[$key]);
-          }
-        }
-      }
-    }
   }
 
   /**
