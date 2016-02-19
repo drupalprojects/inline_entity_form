@@ -69,7 +69,7 @@ class InlineEntityFormElementWebTest extends InlineEntityFormTestBase {
       $this->drupalGet('ief-edit-test/' . $node->id());
       $this->assertFieldByName('inline_entity_form[title][0][value]', $title, 'Node title appears in form.');
       //$this->assertText($title, 'Node title appears in form.');
-      $this->assertText(11, 'Positive int field appears in form.');
+      $this->assertFieldByName('inline_entity_form[positive_int][0][value]', 11, 'Positive int field appears in form.');
       $updated_title = $title . ' - updated';
       $edit['inline_entity_form[title][0][value]'] = $updated_title;
       $this->drupalPostForm(NULL, $edit, t('Update'));
