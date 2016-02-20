@@ -27,7 +27,6 @@ class InlineEntityForm extends RenderElement {
   public function getInfo() {
     $class = get_class($this);
     return [
-      '#language' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
       '#ief_id' => '',
       // Instance of \Drupal\Core\Entity\EntityInterface. Entity that will be
       // displayed in entity form. Can be unset if #enatity_type and #bundle
@@ -35,9 +34,8 @@ class InlineEntityForm extends RenderElement {
       '#entity' => NULL,
       '#entity_type' => NULL,
       '#bundle' => NULL,
+      '#language' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
       '#op' => 'add',
-      // Will hide entity form's own actions if set to FALSE.
-      '#display_actions' => FALSE,
       // Will save entity on submit if set to TRUE.
       '#save_entity' => TRUE,
       // Needs to be set to FALSE if one wants to implement it's own submit logic.

@@ -148,13 +148,7 @@ class EntityInlineForm implements InlineFormInterface {
     $entity = $entity_form['#entity'];
     $form_display = $this->getFormDisplay($entity);
     $form_display->buildForm($entity, $entity_form, $form_state);
-
-    if (!$entity_form['#display_actions']) {
-      unset($entity_form['actions']);
-    }
-
     $entity_form['#ief_element_submit'][] = [get_class($this), 'submitCleanFormState'];
-
     // Allow other modules to alter the form.
     $this->moduleHandler->alter('inline_entity_form_entity_form', $entity_form, $form_state);
 
