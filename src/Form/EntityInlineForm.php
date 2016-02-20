@@ -170,7 +170,7 @@ class EntityInlineForm implements InlineFormInterface {
     // uploads, etc.).
     $triggering_element = $form_state->getTriggeringElement();
     $validate = TRUE;
-    if (empty($triggering_element['#ief_submit_all'])) {
+    if (empty($triggering_element['#ief_submit_trigger_all'])) {
       $element_name = end($triggering_element['#array_parents']);
       $validate = in_array($element_name, ['ief_add_save', 'ief_edit_save']);
     }

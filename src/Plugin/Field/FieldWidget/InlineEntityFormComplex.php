@@ -574,7 +574,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     }
 
     $trigger = $form_state->getTriggeringElement();
-    if (empty($trigger['#ief_trigger'])) {
+    if (empty($trigger['#ief_submit_trigger'])) {
       return;
     }
 
@@ -614,7 +614,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
         });
       }
 
-      if (!empty($trigger['#ief_submit_all'])) {
+      if (!empty($trigger['#ief_submit_trigger_all'])) {
         foreach ($values as $delta => &$item) {
           /** @var \Drupal\Core\Entity\EntityInterface $entity */
           $entity = $item['entity'];
@@ -627,8 +627,6 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
           }
         }
       }
-
-
 
       // Let the widget massage the submitted values.
       $values = $this->massageFormValues($values, $form, $form_state);
@@ -974,10 +972,10 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
    */
   public static function addSubmitCallbacks(&$element) {
     $element['#submit'] = [
-      ['\Drupal\inline_entity_form\Element\InlineEntityForm', 'triggerIefSubmit'],
+      ['\Drupal\inline_entity_form\ElementSubmit', 'trigger'],
       ['\Drupal\inline_entity_form\Plugin\Field\FieldWidget\InlineEntityFormComplex', 'closeForm'],
     ];
-    $element['#ief_trigger']  = TRUE;
+    $element['#ief_submit_trigger']  = TRUE;
   }
 
   /**

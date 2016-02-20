@@ -7,12 +7,12 @@
 
 namespace Drupal\inline_entity_form\Element;
 
-use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Render\Element\RenderElement;
+use Drupal\inline_entity_form\ElementSubmit;
 
 /**
  * Provides an inline entity form element.
@@ -118,7 +118,7 @@ class InlineEntityForm extends RenderElement {
 
     // Attach submit callbacks to main submit buttons.
     if ($entity_form['#handle_submit']) {
-      static::attachMainSubmit($complete_form);
+      ElementSubmit::attach($complete_form, $form_state);
     }
 
     return $entity_form;
@@ -169,131 +169,6 @@ class InlineEntityForm extends RenderElement {
     }
 
     return $inline_form_handler;
-  }
-
-  /**
-   * Tries to attach submit IEF callbacks to main submit buttons.
-   *
-   * @param array $complete_form
-   *   Form structure.
-   */
-  public static function attachMainSubmit(&$complete_form) {
-    $submit_attached = FALSE;
-    $submit = array_merge([[get_called_class(), 'triggerIefSubmit']], $complete_form['#submit']);
-    $submit = array_unique($submit, SORT_REGULAR);
-
-    if (!empty($complete_form['submit'])) {
-      if (empty($complete_form['submit']['#submit'])) {
-        $complete_form['submit']['#submit'] = $submit;
-      }
-      else {
-        $complete_form['submit']['#submit'] = array_merge([[get_called_class(), 'triggerIefSubmit']], $complete_form['submit']['#submit']);
-        $complete_form['submit']['#submit'] = array_unique($complete_form['submit']['#submit'], SORT_REGULAR);
-      }
-      $complete_form['submit']['#ief_submit_all'] = TRUE;
-      $complete_form['submit']['#ief_trigger']  = TRUE;
-      $submit_attached = TRUE;
-    }
-
-    foreach (['submit', 'publish', 'unpublish'] as $action) {
-      if (!empty($complete_form['actions'][$action])) {
-        if (empty($complete_form['actions'][$action]['#submit'])) {
-          $complete_form['actions'][$action]['#submit'] = $submit;
-        }
-        else {
-          $complete_form['actions'][$action]['#submit'] = array_merge([[get_called_class(), 'triggerIefSubmit']], $complete_form['actions'][$action]['#submit']);
-          $complete_form['actions'][$action]['#submit'] = array_unique($complete_form['actions'][$action]['#submit'], SORT_REGULAR);
-        }
-        $complete_form['actions'][$action]['#ief_trigger']  = TRUE;
-        $complete_form['actions'][$action]['#ief_submit_all'] = TRUE;
-        $submit_attached = TRUE;
-      }
-    }
-
-    // If we didn't attach submit to one of the most common buttons let's search
-    // the form for any submit with #button_type == primary and attach to that.
-    if (!$submit_attached) {
-      static::recurseAttachMainSubmit($complete_form, $submit);
-    }
-  }
-
-  /**
-   * Attaches IEF submit callback to primary submit element on a form.
-   *
-   * Recursively searches form structure and looks for submit elements with
-   * #button_type == primary. If one is found it attaches IEF submit callback
-   * to it and backtracks.
-   *
-   * @param array $element
-   *   (Sub) form array structure.
-   * @param array $submit_callbacks
-   *   Submit callbacks to be attached.
-   *
-   * @return bool
-   *   TRUE if appropriate element was found. FALSE otherwise.
-   */
-  public static function recurseAttachMainSubmit(&$element, $submit_callbacks) {
-    foreach (Element::children($element) as $child) {
-      if (!empty($element[$child]['#type']) && $element[$child]['#type'] == 'submit' && $element[$child]['#button_type'] == 'preview') {
-        $element[$child]['#submit'] = empty($element[$child]['#submit']) ? $submit_callbacks : array_merge($submit_callbacks, $element[$child]['#submit']);
-        $element[$child]['#submit'] = array_unique($element[$child]['#submit'], SORT_REGULAR);
-        $element[$child]['#ief_submit_all'] = TRUE;
-        return TRUE;
-      }
-      elseif (static::recurseAttachMainSubmit($element[$child], $submit_callbacks)) {
-        return TRUE;
-      }
-    }
-    return FALSE;
-  }
-
-  /**
-   * Button #submit callback: Triggers submission of entity forms.
-   *
-   * @param $form
-   *   The complete parent form.
-   * @param $form_state
-   *   The form state of the parent form.
-   */
-  public static function triggerIefSubmit($form, FormStateInterface $form_state) {
-    $triggered_element = $form_state->getTriggeringElement();
-    if (!empty($triggered_element['#ief_submit_all'])) {
-      // The parent form was submitted, process all IEFs and their children.
-      static::iefSubmit($form, $form_state);
-    }
-    else {
-      // A specific entity form was submitted, process it and all of its children.
-      $array_parents = $triggered_element['#array_parents'];
-      $array_parents = array_slice($array_parents, 0, -2);
-      $element = NestedArray::getValue($form, $array_parents);
-      static::iefSubmit($element, $form_state);
-    }
-  }
-
-  /**
-   * Submits entity forms by calling their #ief_element_submit callbacks.
-   *
-   * #ief_element_submit is the submit version of #element_validate.
-   *
-   * @param array $elements
-   *   An array of form elements containing entity forms.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The form state of the parent form.
-   */
-  public static function iefSubmit($elements, FormStateInterface $form_state) {
-    // Recurse through all children.
-    foreach (Element::children($elements) as $key) {
-      if (!empty($elements[$key])) {
-        static::iefSubmit($elements[$key], $form_state);
-      }
-    }
-
-    // If there are callbacks on this level, run them.
-    if (!empty($elements['#ief_element_submit'])) {
-      foreach ($elements['#ief_element_submit'] as $function) {
-        $function($elements, $form_state);
-      }
-    }
   }
 
   /**

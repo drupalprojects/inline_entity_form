@@ -11,8 +11,8 @@
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\inline_entity_form\ElementSubmit;
 use Drupal\inline_entity_form\Form\EntityInlineForm;
-use Drupal\inline_entity_form\Element\InlineEntityForm;
 use Drupal\inline_entity_form\Plugin\Field\FieldWidget\InlineEntityFormComplex;
 
 /**
@@ -30,6 +30,15 @@ function inline_entity_form_entity_type_build(array &$entity_types) {
     if (!$entity_type->getHandlerClass('inline_form')) {
       $entity_type->setHandlerClass('inline_form', '\Drupal\inline_entity_form\Form\EntityInlineForm');
     }
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function inline_entity_form_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  if ($form_state->get('inline_entity_form')) {
+    ElementSubmit::attach($form, $form_state);
   }
 }
 
@@ -446,14 +455,4 @@ function inline_entity_form_has_tabledrag($element) {
   }
 
   return TRUE;
-}
-
-/**
- * Implements hook_form_alter().
- */
-function inline_entity_form_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
-  if ($form_state->get('inline_entity_form')) {
-    InlineEntityForm::attachMainSubmit($form);
-  }
-
 }
