@@ -142,7 +142,7 @@ class EntityInlineForm implements InlineFormInterface {
   public function entityForm($entity_form, FormStateInterface $form_state) {
     /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
     $entity = $entity_form['#entity'];
-    $form_display = $this->getFormDisplay($entity);
+    $form_display = $this->getFormDisplay($entity, $entity_form['#form_mode']);
     $form_display->buildForm($entity, $entity_form, $form_state);
     $entity_form['#ief_element_submit'][] = [get_class($this), 'submitCleanFormState'];
     // Allow other modules to alter the form.
@@ -169,7 +169,8 @@ class EntityInlineForm implements InlineFormInterface {
       /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
       $entity = $entity_form['#entity'];
       $this->buildEntity($entity_form, $entity, $form_state);
-      $this->getFormDisplay($entity)->validateFormValues($entity, $entity_form, $form_state);
+      $form_display = $this->getFormDisplay($entity, $entity_form['#form_mode']);
+      $form_display->validateFormValues($entity, $entity_form, $form_state);
 
       // TODO - this is field-only part of the code. Figure out how to refactor.
       if ($form_state->has(['inline_entity_form', $entity_form['#ief_id']])) {
@@ -224,7 +225,8 @@ class EntityInlineForm implements InlineFormInterface {
    *   The current state of the form.
    */
   protected function buildEntity(array $entity_form, ContentEntityInterface $entity, FormStateInterface $form_state) {
-    $this->getFormDisplay($entity)->extractFormValues($entity, $entity_form, $form_state);
+    $form_display = $this->getFormDisplay($entity, $entity_form['#form_mode']);
+    $form_display->extractFormValues($entity, $entity_form, $form_state);
     // Invoke all specified builders for copying form values to entity fields.
     if (isset($entity_form['#entity_builders'])) {
       foreach ($entity_form['#entity_builders'] as $function) {
@@ -273,12 +275,14 @@ class EntityInlineForm implements InlineFormInterface {
    *
    * @param \Drupal\Core\Entity\ContentEntityInterface $entity
    *   The entity.
+   * @param string $form_mode
+   *   The form mode.
    *
    * @return \Drupal\Core\Entity\Display\EntityFormDisplayInterface
    *   The form display.
    */
-  protected function getFormDisplay(ContentEntityInterface $entity) {
-    return EntityFormDisplay::collectRenderDisplay($entity, 'default');
+  protected function getFormDisplay(ContentEntityInterface $entity, $form_mode) {
+    return EntityFormDisplay::collectRenderDisplay($entity, $form_mode);
   }
 
 }

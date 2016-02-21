@@ -31,6 +31,8 @@ class InlineEntityForm extends RenderElement {
       '#bundle' => NULL,
       '#language' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
       '#op' => 'add',
+      // The form mode used to display the entity form.
+      '#form_mode' => 'default',
       // Will save entity on submit if set to TRUE.
       '#save_entity' => TRUE,
       // Needs to be set to FALSE if one wants to implement it's own submit logic.

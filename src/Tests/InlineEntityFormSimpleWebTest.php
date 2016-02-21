@@ -19,13 +19,6 @@ class InlineEntityFormSimpleWebTest extends InlineEntityFormTestBase {
   public static $modules = ['inline_entity_form_test'];
 
   /**
-   * User with permissions to create content.
-   *
-   * @var \Drupal\user\Entity\User
-   */
-  protected $user;
-
-  /**
    * Field config storage.
    *
    * @var \Drupal\Core\Config\Entity\ConfigEntityStorage

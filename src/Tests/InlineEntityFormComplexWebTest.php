@@ -21,13 +21,6 @@ class InlineEntityFormComplexWebTest extends InlineEntityFormTestBase {
   ];
 
   /**
-   * User with permissions to create content.
-   *
-   * @var \Drupal\user\Entity\User
-   */
-  protected $user;
-
-  /**
    * URL to add new content.
    *
    * @var string
