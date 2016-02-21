@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\inline_entity_form\Tests\InlineEntityFormWebTest.
- */
-
 namespace Drupal\inline_entity_form\Tests;
 
 use Drupal\Core\Field\FieldStorageDefinitionInterface;

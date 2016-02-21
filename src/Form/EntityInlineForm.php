@@ -1,9 +1,5 @@
 <?php
 
-/**
- * Contains \Drupal\inline_entity_form\Form\EntityInlineForm.
- */
-
 namespace Drupal\inline_entity_form\Form;
 
 use Drupal\Core\Entity\ContentEntityInterface;

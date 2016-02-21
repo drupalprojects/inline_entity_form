@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\inline_entity_form\Plugin\Field\FieldWidget\InlineEntityFormBase.
- */
-
 namespace Drupal\inline_entity_form\Plugin\Field\FieldWidget;
 
 use Drupal\Core\Entity\EntityInterface;

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\inline_entity_form_test\IefTest
- */
-
 namespace Drupal\inline_entity_form_test;
 
 use Drupal\Core\Form\FormBase;

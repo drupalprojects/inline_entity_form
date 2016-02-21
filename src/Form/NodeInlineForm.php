@@ -1,9 +1,5 @@
 <?php
 
-/**
- * Contains \Drupal\inline_entity_form\Form\NodeInlineForm.
- */
-
 namespace Drupal\inline_entity_form\Form;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;

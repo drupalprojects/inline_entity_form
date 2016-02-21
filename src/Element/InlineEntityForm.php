@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\inline_entity_form\Element\InlineEntityForm.
- */
-
 namespace Drupal\inline_entity_form\Element;
 
 use Drupal\Core\Entity\EntityInterface;

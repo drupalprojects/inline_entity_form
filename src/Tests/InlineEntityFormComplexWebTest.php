@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\inline_entity_form\Tests\InlineEntityFormComplexWebTest.
- */
-
 namespace Drupal\inline_entity_form\Tests;
 
 /**
