@@ -7,12 +7,15 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 
 /**
- * Callbacks for #ief_element_submit, the submit version of #element_validate.
+ * Provides #ief_element_submit, the submit version of #element_validate.
+ *
+ * #ief_element_submit callbacks are invoked by a #submit callback added
+ * to the form's main submit button.
  */
 class ElementSubmit {
 
   /**
-   * Attaches the submit callbacks to the given form.
+   * Attaches the #ief_element_submit functionality to the given form.
    *
    * @param array $form
    *   The form.
@@ -20,34 +23,45 @@ class ElementSubmit {
    *   The form state.
    */
   public static function attach(&$form, FormStateInterface $form_state) {
-    $submit = array_merge([[get_called_class(), 'trigger']], $form['#submit']);
-    $submit = array_unique($submit, SORT_REGULAR);
-
-    if (!empty($form['submit'])) {
-      if (empty($form['submit']['#submit'])) {
-        $form['submit']['#submit'] = $submit;
-      }
-      else {
-        $form['submit']['#submit'] = array_merge([[get_called_class(), 'trigger']], $form['submit']['#submit']);
-        $form['submit']['#submit'] = array_unique($form['submit']['#submit'], SORT_REGULAR);
-      }
-      $form['submit']['#ief_submit_trigger']  = TRUE;
-      $form['submit']['#ief_submit_trigger_all'] = TRUE;
+    // attach() is called for each IEF form element, but the callbacks only
+    // need to be added once per form build.
+    if ($form_state->getTemporaryValue('ief_build_id') == $form['#build_id']) {
+      return;
     }
+    $form_state->setTemporaryValue('ief_build_id', $form['#build_id']);
 
+    // Entity form actions.
     foreach (['submit', 'publish', 'unpublish'] as $action) {
       if (!empty($form['actions'][$action])) {
-        if (empty($form['actions'][$action]['#submit'])) {
-          $form['actions'][$action]['#submit'] = $submit;
-        }
-        else {
-          $form['actions'][$action]['#submit'] = array_merge([[get_called_class(), 'trigger']], $form['actions'][$action]['#submit']);
-          $form['actions'][$action]['#submit'] = array_unique($form['actions'][$action]['#submit'], SORT_REGULAR);
-        }
-        $form['actions'][$action]['#ief_submit_trigger']  = TRUE;
-        $form['actions'][$action]['#ief_submit_trigger_all'] = TRUE;
+        self::addCallback($form['actions'][$action], $form);
       }
     }
+    // Generic submit button.
+    if (!empty($form['submit'])) {
+      self::addCallback($form['submit'], $form);
+    }
+  }
+
+  /**
+   * Adds the trigger callback to the given submit element.
+   *
+   * @param array $element
+   *   The submit element.
+   * @param array $complete_form
+   *   The complete form.
+   */
+  public static function addCallback(&$element, $complete_form) {
+    if (empty($element['#submit'])) {
+      // Drupal runs either the button-level callbacks or the form-level ones.
+      // Having no button-level callbacks indicates that the form has relied
+      // on form-level callbacks, which now need to be transferred.
+      $element['#submit'] = $complete_form['#submit'];
+    }
+
+    $element['#submit'] = array_merge([[get_called_class(), 'trigger']], $element['#submit']);
+    // Used to distinguish between an inline form submit and main form submit.
+    $element['#ief_submit_trigger']  = TRUE;
+    $element['#ief_submit_trigger_all'] = TRUE;
   }
 
   /**

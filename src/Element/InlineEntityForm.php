@@ -35,8 +35,6 @@ class InlineEntityForm extends RenderElement {
       '#form_mode' => 'default',
       // Will save entity on submit if set to TRUE.
       '#save_entity' => TRUE,
-      // Needs to be set to FALSE if one wants to implement it's own submit logic.
-      '#handle_submit' => TRUE,
       '#process' => [
         [$class, 'processEntityForm'],
       ],
@@ -110,11 +108,9 @@ class InlineEntityForm extends RenderElement {
 
     $inline_form_handler = static::getInlineFormHandler($entity_form['#entity_type']);
     $entity_form = $inline_form_handler->entityForm($entity_form, $form_state);
-
-    // Attach submit callbacks to main submit buttons.
-    if ($entity_form['#handle_submit']) {
-      ElementSubmit::attach($complete_form, $form_state);
-    }
+    // The form element can't rely on inline_entity_form_form_alter() calling
+    // ElementSubmit::attach() since form alters run before #process callbacks.
+    ElementSubmit::attach($complete_form, $form_state);
 
     return $entity_form;
   }
