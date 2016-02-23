@@ -274,7 +274,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
 
     // Get the fields that should be displayed in the table.
     $target_bundles = $this->getTargetBundles();
-    $fields = $this->iefHandler->getTableFields($target_bundles);
+    $fields = $this->inlineFormHandler->getTableFields($target_bundles);
     $context = array(
       'parent_entity_type' => $this->fieldDefinition->getTargetEntityTypeId(),
       'parent_bundle' => $this->fieldDefinition->getTargetBundle(),
@@ -290,7 +290,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
       // Data used by theme_inline_entity_form_entity_table().
       /** @var \Drupal\Core\Entity\EntityInterface $entity */
       $entity = $value['entity'];
-      $element['entities'][$key]['#label'] = $this->iefHandler->getEntityLabel($value['entity']);
+      $element['entities'][$key]['#label'] = $this->inlineFormHandler->getEntityLabel($value['entity']);
       $element['entities'][$key]['#entity'] = $value['entity'];
       $element['entities'][$key]['#needs_save'] = $value['needs_save'];
 
@@ -771,7 +771,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     /** @var \Drupal\Core\Entity\EntityInterface $entity */
     $entity = $form['#entity'];
     $entity_id = $entity->id();
-    $entity_label = $this->iefHandler->getEntityLabel($entity);
+    $entity_label = $this->inlineFormHandler->getEntityLabel($entity);
     $labels = $this->getEntityTypeLabels();
 
     if ($entity_label) {

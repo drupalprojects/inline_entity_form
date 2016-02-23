@@ -44,7 +44,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    *
    * @var \Drupal\inline_entity_form\InlineFormInterface
    */
-  protected $iefHandler;
+  protected $inlineFormHandler;
 
   /**
    * The entity display repository.
@@ -79,7 +79,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
     $this->entityTypeBundleInfo = $entity_type_bundle_info;
     $this->entityTypeManager = $entity_type_manager;
     $this->entityDisplayRepository = $entity_display_repository;
-    $this->initializeIefController();
+    $this->createInlineFormHandler();
   }
 
   /**
@@ -99,12 +99,12 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   }
 
   /**
-   * Initializes IEF form handler.
+   * Creates an instance of the inline form handler for the current entity type.
    */
-  protected function initializeIefController() {
-    if (!isset($this->iefHandler)) {
+  protected function createInlineFormHandler() {
+    if (!isset($this->inlineFormHandler)) {
       $target_type = $this->fieldDefinition->getFieldStorageDefinition()->getSetting('target_type');
-      $this->iefHandler = $this->entityTypeManager->getHandler($target_type, 'inline_form');
+      $this->inlineFormHandler = $this->entityTypeManager->getHandler($target_type, 'inline_form');
     }
   }
 
@@ -112,7 +112,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    * {@inheritdoc}
    */
   public function __sleep() {
-    $keys = array_diff(parent::__sleep(), ['iefHandler']);
+    $keys = array_diff(parent::__sleep(), ['inlineFormHandler']);
     return $keys;
   }
 
@@ -121,7 +121,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    */
   public function __wakeup() {
     parent::__wakeup();
-    $this->initializeIefController();
+    $this->createInlineFormHandler();
   }
 
   /**
@@ -258,8 +258,8 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       ];
     }
     else {
-      $this->initializeIefController();
-      return $this->iefHandler->getEntityTypeLabels();
+      $this->createInlineFormHandler();
+      return $this->inlineFormHandler->getEntityTypeLabels();
     }
   }
 
@@ -280,7 +280,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       return FALSE;
     }
 
-    if (!$this->iefHandler) {
+    if (!$this->inlineFormHandler) {
       return FALSE;
     }
 
