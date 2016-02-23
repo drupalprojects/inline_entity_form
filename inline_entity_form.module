@@ -128,24 +128,25 @@ function inline_entity_form_reference_form($reference_form, &$form_state) {
  *   The form state of the parent form.
  */
 function inline_entity_form_reference_form_validate(&$reference_form, FormStateInterface $form_state) {
-  $ief_id = $reference_form['#ief_id'];
-  $entity_type = $reference_form['#entity_type'];
-  $parents_path = implode('][', $reference_form['#parents']);
-  $labels = $reference_form['#ief_labels'];
   $form_values = NestedArray::getValue($form_state->getValues(), $reference_form['#parents']);
-  $attach_entity = \Drupal::entityTypeManager()->getStorage($entity_type)->load($form_values['entity_id']);
+  if (empty($form_values['entity_id'])) {
+    // The entity_id element is required, the value is empty only if
+    // the form was cancelled.
+    return;
+  }
+  $ief_id = $reference_form['#ief_id'];
+  $labels = $reference_form['#ief_labels'];
+  $storage = \Drupal::entityTypeManager()->getStorage($reference_form['#entity_type']);
+  $entity = $storage->load($form_values['entity_id']);
 
-  // Check to see if entity is already referenced by current IEF widget
-  if (!empty($attach_entity)) {
+  // Check if the entity is already referenced by the field.
+  if (!empty($entity)) {
     foreach ($form_state->get(['inline_entity_form', $ief_id, 'entities']) as $key => $value) {
-      if ($value['entity'] == $attach_entity) {
-        $form_state->setErrorByName($parents_path . '][existing_entity', t('The selected @label has already been added.', ['@label' => $labels['singular']]));
-        unset($attach_entity);
+      if ($value['entity']->id() == $entity->id()) {
+        $form_state->setError($reference_form['entity_id'], t('The selected @label has already been added.', ['@label' => $labels['singular']]));
+        break;
       }
     }
-  }
-  else {
-    $form_state->setErrorByName($parents_path . '][existing_entity', t('The selected @label is not valid.', ['@label' => $labels['singular']]));
   }
 }
 
