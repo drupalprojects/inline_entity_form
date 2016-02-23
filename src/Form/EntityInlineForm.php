@@ -130,6 +130,10 @@ class EntityInlineForm implements InlineFormInterface {
         'type' => 'field',
         'label' => $bundle_field_label,
         'weight' => 2,
+        'display_options' => [
+          'type' => 'entity_reference_label',
+          'settings' => ['link' => FALSE],
+        ],
       ];
     }
 
