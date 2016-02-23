@@ -290,13 +290,15 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   /**
    * Gets inline entity form element.
    *
-   * @param $operation
-   *   Operation (i.e. 'add' or 'edit').
-   * @param $language
+   * @param string $operation
+   *   The operation (i.e. 'add' or 'edit').
+   * @param string $bundle
+   *   Entity bundle.
+   * @param string $language
    *   Entity langcode.
    * @param array $parents
    *   Array of parent element names.
-   * @param EntityInterface $entity
+   * @param \Drupal\Core\Entity\EntityInterface $entity
    *   Optional entity object.
    * @param bool $save_entity
    *   IEF will attempt to save entity after attaching all field values if set to
@@ -305,9 +307,13 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    * @return array
    *   IEF form element structure.
    */
-  protected function getInlineEntityForm($operation, $language, $delta, array $parents, $bundle = NULL, EntityInterface $entity = NULL, $save_entity = FALSE) {
-    $ief = [
+  protected function getInlineEntityForm($operation, $bundle, $language, $delta, array $parents, EntityInterface $entity = NULL, $save_entity = FALSE) {
+    $element = [
       '#type' => 'inline_entity_form',
+      '#entity_type' => $this->getFieldSetting('target_type'),
+      '#bundle' => $bundle,
+      '#language' => $language,
+      '#entity' => $entity,
       '#op' => $operation,
       '#form_mode' => $this->getSetting('form_mode'),
       '#save_entity' => $save_entity,
@@ -315,9 +321,6 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       // Used by Field API and controller methods to find the relevant
       // values in $form_state.
       '#parents' => $parents,
-      '#entity_type' => $this->getFieldSetting('target_type'),
-      // Pass the langcode of the parent entity,
-      '#language' => $language,
       // Labels could be overridden in field widget settings. We won't have
       // access to those in static callbacks (#process, ...) so let's add
       // them here.
@@ -326,16 +329,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       '#ief_id' => $this->getIefId(),
     ];
 
-    if ($entity) {
-      // Store the entity on the form, later modified in the controller.
-      $ief['#entity'] = $entity;
-    }
-
-    if ($bundle) {
-      $ief['#bundle'] = $bundle;
-    }
-
-    return $ief;
+    return $element;
   }
 
   /**

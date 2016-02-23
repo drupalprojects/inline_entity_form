@@ -2,7 +2,6 @@
 
 namespace Drupal\inline_entity_form\Element;
 
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Render\Element;
@@ -23,13 +22,12 @@ class InlineEntityForm extends RenderElement {
     $class = get_class($this);
     return [
       '#ief_id' => '',
-      // Instance of \Drupal\Core\Entity\EntityInterface. Entity that will be
-      // displayed in entity form. Can be unset if #enatity_type and #bundle
-      // are provided and #op equals 'add'.
-      '#entity' => NULL,
       '#entity_type' => NULL,
       '#bundle' => NULL,
       '#language' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
+      // Instance of \Drupal\Core\Entity\EntityInterface. Can be NULL
+      // when #op is 'add', in which case a new entity will be created.
+      '#entity' => NULL,
       '#op' => 'add',
       // The form mode used to display the entity form.
       '#form_mode' => 'default',
@@ -62,26 +60,22 @@ class InlineEntityForm extends RenderElement {
    * @param array $complete_form
    *   The complete form structure.
    *
+   * @throws \InvalidArgumentException
+   *   Thrown when the #entity_type or #bundle properties are empty.
+   *
    * @return array
    *   The built entity form.
    */
   public static function processEntityForm($entity_form, FormStateInterface $form_state, &$complete_form) {
+    if (empty($entity_form['#entity_type'])) {
+      throw new \InvalidArgumentException('The inline_entity_form element requires the #entity_type property.');
+    }
+    if (empty($entity_form['#bundle'])) {
+      throw new \InvalidArgumentException('The inline_entity_form element requires the #bundle property.');
+    }
     if (empty($entity_form['#ief_id'])) {
       $entity_form['#ief_id'] = \Drupal::service('uuid')->generate();
     }
-    if (empty($entity_form['#entity_type']) && !empty($entity_form['#entity']) && $entity_form['#entity'] instanceof EntityInterface) {
-      $entity_form['#entity_type'] = $entity_form['#entity']->getEntityTypeId();
-    }
-    if (empty($entity_form['#bundle']) && !empty($entity_form['#entity']) && $entity_form['#entity'] instanceof EntityInterface) {
-      $entity_form['#bundle'] = $entity_form['#entity']->bundle();
-    }
-
-    // We can't do anything useful if we don't know which entity type/ bundle
-    // we're supposed to operate with.
-    if (empty($entity_form['#entity_type']) || empty($entity_form['#bundle'])) {
-      return $entity_form;
-    }
-
     // Create a new entity for the add form.
     if ($entity_form['#op'] == 'add' && empty($entity_form['#entity'])) {
       $entity_type = \Drupal::entityTypeManager()->getDefinition($entity_form['#entity_type']);

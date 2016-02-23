@@ -312,10 +312,10 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
             '#attributes' => ['class' => ['ief-form', 'ief-form-row']],
             'inline_entity_form' => $this->getInlineEntityForm(
               $value['form'],
+              $entity->bundle(),
               $parent_langcode,
               $key,
               array_merge($parents,  ['inline_entity_form', 'entities', $key, 'form']),
-              $entity->bundle(),
               $entity
             ),
           ];
@@ -511,10 +511,10 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
           '#attributes' => ['class' => ['ief-form', 'ief-form-bottom']],
           'inline_entity_form' => $this->getInlineEntityForm(
             'add',
+            $this->determineBundle($form_state),
             $parent_langcode,
             NULL,
-            array_merge($parents, ['inline_entity_form']),
-            $this->determineBundle($form_state)
+            array_merge($parents, ['inline_entity_form'])
           )
         ];
         $element['form']['inline_entity_form']['#process'] = [
