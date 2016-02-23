@@ -536,9 +536,11 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
           '#entity_type' => $target_type,
           // Pass the langcode of the parent entity,
           '#parent_language' => $parent_langcode,
+          // Pass the widget specific labels.
+          '#ief_labels' => $this->getEntityTypeLabels(),
         );
 
-        $element['form'] += inline_entity_form_reference_form($this->iefHandler, $element['form'], $form_state);
+        $element['form'] += inline_entity_form_reference_form($element['form'], $form_state);
       }
 
       // Pre-opened forms can't be closed in order to force the user to

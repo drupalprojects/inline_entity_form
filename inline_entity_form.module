@@ -57,58 +57,58 @@ function inline_entity_form_theme() {
 /**
  * Provides the form for adding existing entities through an autocomplete field.
  *
- * @param $entity_form
+ * @param array $reference_form
  *   The form array that will receive the form.
- * @param $form_state
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
  *   The form state of the parent form.
  *
- * @return
+ * @return array
  *   The form array containing the embedded form.
  */
-function inline_entity_form_reference_form($handler, $reference_form, &$form_state) {
-  $labels = $handler->getEntityTypeLabels();
+function inline_entity_form_reference_form($reference_form, &$form_state) {
+  $labels = $reference_form['#ief_labels'];
   $ief_id = $reference_form['#ief_id'];
   /** @var \Drupal\field\Entity\FieldConfig $instance */
   $instance = $form_state->get(['inline_entity_form', $ief_id, 'instance']);
 
-  $reference_form['#title'] = t('Add existing @type_singular', array('@type_singular' => $labels['singular']));
-  $reference_form['entity_id'] = array(
+  $reference_form['#title'] = t('Add existing @type_singular', ['@type_singular' => $labels['singular']]);
+  $reference_form['entity_id'] = [
     '#type' => 'entity_autocomplete',
-    '#title' => t('@label', array('@label' => ucwords($labels['singular']))),
+    '#title' => t('@label', ['@label' => ucwords($labels['singular'])]),
     '#target_type' => $instance->getSetting('target_type'),
     '#selection_handler' => $instance->getSetting('handler'),
     '#selection_settings' => $instance->getSetting('handler_settings'),
     '#required' => TRUE,
     '#maxlength' => 255,
-  );
+  ];
   // Add the actions
-  $reference_form['actions'] = array(
+  $reference_form['actions'] = [
     '#type' => 'container',
     '#weight' => 100,
-  );
-  $reference_form['actions']['ief_reference_save'] = array(
+  ];
+  $reference_form['actions']['ief_reference_save'] = [
     '#type' => 'submit',
-    '#value' => t('Add @type_singular', array('@type_singular' => $labels['singular'])),
+    '#value' => t('Add @type_singular', ['@type_singular' => $labels['singular']]),
     '#name' => 'ief-reference-submit-' . $reference_form['#ief_id'],
-    '#limit_validation_errors' => array($reference_form['#parents']),
-    '#attributes' => array('class' => array('ief-entity-submit')),
-    '#ajax' => array(
+    '#limit_validation_errors' => [$reference_form['#parents']],
+    '#attributes' => ['class' => ['ief-entity-submit']],
+    '#ajax' => [
       'callback' => 'inline_entity_form_get_element',
       'wrapper' => 'inline-entity-form-' . $reference_form['#ief_id'],
-    ),
-  );
+    ],
+  ];
   InlineEntityFormComplex::addSubmitCallbacks($reference_form['actions']['ief_reference_save']);
-  $reference_form['actions']['ief_reference_cancel'] = array(
+  $reference_form['actions']['ief_reference_cancel'] = [
     '#type' => 'submit',
     '#value' => t('Cancel'),
     '#name' => 'ief-reference-cancel-' . $reference_form['#ief_id'],
-    '#limit_validation_errors' => array(),
-    '#ajax' => array(
+    '#limit_validation_errors' => [],
+    '#ajax' => [
       'callback' => 'inline_entity_form_get_element',
       'wrapper' => 'inline-entity-form-' . $reference_form['#ief_id'],
-    ),
+    ],
     '#submit' => [['\Drupal\inline_entity_form\Plugin\Field\FieldWidget\InlineEntityFormComplex', 'closeForm']],
-  );
+  ];
 
   $reference_form['#element_validate'][] = 'inline_entity_form_reference_form_validate';
   $reference_form['#ief_element_submit'][] = 'inline_entity_form_reference_form_submit';
@@ -122,22 +122,16 @@ function inline_entity_form_reference_form($handler, $reference_form, &$form_sta
 /**
  * Validates the form for adding existing entities.
  *
- * @param $reference_form
+ * @param array $reference_form
  *  The reference entity form.
- * @param $form_state
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
  *   The form state of the parent form.
  */
 function inline_entity_form_reference_form_validate(&$reference_form, FormStateInterface $form_state) {
   $ief_id = $reference_form['#ief_id'];
   $entity_type = $reference_form['#entity_type'];
   $parents_path = implode('][', $reference_form['#parents']);
-
-  $instance = $form_state->get(['inline_entity_form', $ief_id, 'instance']);
-  $target_type = $instance->getFieldStorageDefinition()->getSetting('target_type');
-  /** @var \Drupal\inline_entity_form\InlineFormInterface $handler */
-  $handler = \Drupal::entityTypeManager()->getHandler($target_type, 'inline_form');
-  $labels = $handler->getEntityTypeLabels();
-
+  $labels = $reference_form['#ief_labels'];
   $form_values = NestedArray::getValue($form_state->getValues(), $reference_form['#parents']);
   $attach_entity = \Drupal::entityTypeManager()->getStorage($entity_type)->load($form_values['entity_id']);
 
@@ -145,13 +139,13 @@ function inline_entity_form_reference_form_validate(&$reference_form, FormStateI
   if (!empty($attach_entity)) {
     foreach ($form_state->get(['inline_entity_form', $ief_id, 'entities']) as $key => $value) {
       if ($value['entity'] == $attach_entity) {
-        $form_state->setErrorByName($parents_path . '][existing_entity', t('The selected @label has already been added.', array('@label' => $labels['singular'])));
+        $form_state->setErrorByName($parents_path . '][existing_entity', t('The selected @label has already been added.', ['@label' => $labels['singular']]));
         unset($attach_entity);
       }
     }
   }
   else {
-    $form_state->setErrorByName($parents_path . '][existing_entity', t('The selected @label is not valid.', array('@label' => $labels['singular'])));
+    $form_state->setErrorByName($parents_path . '][existing_entity', t('The selected @label is not valid.', ['@label' => $labels['singular']]));
   }
 }
 
@@ -160,31 +154,29 @@ function inline_entity_form_reference_form_validate(&$reference_form, FormStateI
  *
  * Adds the specified entity to the IEF form state.
  *
- * @param $reference_form
+ * @param array $reference_form
  *  The reference entity form.
- * @param $form_state
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
  *   The form state of the parent form.
  */
 function inline_entity_form_reference_form_submit($reference_form, FormStateInterface $form_state) {
   $ief_id = $reference_form['#ief_id'];
-  $entity_type = $reference_form['#entity_type'];
-
   $form_values = NestedArray::getValue($form_state->getValues(), $reference_form['#parents']);
-  $attach_entity = \Drupal::entityTypeManager()->getStorage($entity_type)->load($form_values['entity_id']);
-
+  $storage = \Drupal::entityTypeManager()->getStorage($reference_form['#entity_type']);
+  $entity = $storage->load($form_values['entity_id']);
   // Determine the correct weight of the new element.
   $weight = 0;
   if ($form_state->has(['inline_entity_form', $ief_id, 'entities'])) {
     $weight = max(array_keys($form_state->get(['inline_entity_form', $ief_id, 'entities']))) + 1;
   }
 
-  $entities =& $form_state->get(['inline_entity_form', $ief_id, 'entities']);
-  $entities[] = array(
-    'entity' => $attach_entity,
+  $entities = &$form_state->get(['inline_entity_form', $ief_id, 'entities']);
+  $entities[] = [
+    'entity' => $entity,
     '_weight' => $weight,
     'form' => NULL,
     'needs_save' => FALSE,
-  );
+  ];
   $form_state->set(['inline_entity_form', $ief_id, 'entities'], $entities);
 }
 
