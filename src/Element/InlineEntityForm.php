@@ -82,20 +82,17 @@ class InlineEntityForm extends RenderElement {
       return $entity_form;
     }
 
-    // If entity object is not there we're displaying the add form. We need to
-    // create a new entity to be used with it.
-    if (empty($entity_form['#entity'])) {
-      if ($entity_form['#op'] == 'add') {
-        $entity_type = \Drupal::entityTypeManager()->getDefinition($entity_form['#entity_type']);
-        $storage = \Drupal::entityTypeManager()->getStorage($entity_form['#entity_type']);
-        $values = [
-          'langcode' => $entity_form['#language'],
-        ];
-        if ($bundle_key = $entity_type->getKey('bundle')) {
-          $values[$bundle_key] = $entity_form['#bundle'];
-        }
-        $entity_form['#entity'] = $storage->create($values);
+    // Create a new entity for the add form.
+    if ($entity_form['#op'] == 'add' && empty($entity_form['#entity'])) {
+      $entity_type = \Drupal::entityTypeManager()->getDefinition($entity_form['#entity_type']);
+      $storage = \Drupal::entityTypeManager()->getStorage($entity_form['#entity_type']);
+      $values = [
+        'langcode' => $entity_form['#language'],
+      ];
+      if ($bundle_key = $entity_type->getKey('bundle')) {
+        $values[$bundle_key] = $entity_form['#bundle'];
       }
+      $entity_form['#entity'] = $storage->create($values);
     }
 
     // Put some basic information about IEF into form state.
@@ -163,25 +160,28 @@ class InlineEntityForm extends RenderElement {
   }
 
   /**
-   * Pre-render callback: Move form elements into fieldsets.
+   * Pre-render callback for the #fieldset form property.
    *
    * Inline forms use #tree = TRUE to keep their values in a hierarchy for
    * easier storage. Moving the form elements into fieldsets during form
    * building would break up that hierarchy, so it's not an option for entity
    * fields. Therefore, we wait until the pre_render stage, where any changes
    * we make affect presentation only and aren't reflected in $form_state.
+   *
+   * @param array $entity_form
+   *   The entity form.
+   *
+   * @return array
+   *   The modified entity form.
    */
-  public static function addFieldsetMarkup($form) {
+  public static function addFieldsetMarkup($entity_form) {
     $sort = [];
-    foreach (Element::children($form) as $key) {
-      $element = $form[$key];
-      // In our form builder functions, we added an arbitrary #fieldset property
-      // to any element that belongs in a fieldset. If this form element has that
-      // property, move it into its fieldset.
-      if (isset($element['#fieldset']) && isset($form[$element['#fieldset']])) {
-        $form[$element['#fieldset']][$key] = $element;
+    foreach (Element::children($entity_form) as $key) {
+      $element = $entity_form[$key];
+      if (isset($element['#fieldset']) && isset($entity_form[$element['#fieldset']])) {
+        $entity_form[$element['#fieldset']][$key] = $element;
         // Remove the original element this duplicates.
-        unset($form[$key]);
+        unset($entity_form[$key]);
         // Mark the fieldset for sorting.
         if (!in_array($key, $sort)) {
           $sort[] = $element['#fieldset'];
@@ -191,10 +191,10 @@ class InlineEntityForm extends RenderElement {
 
     // Sort all fieldsets, so that element #weight stays respected.
     foreach ($sort as $key) {
-      uasort($form[$key], '\Drupal\Component\Utility\SortArray::sortByWeightProperty');
+      uasort($entity_form[$key], '\Drupal\Component\Utility\SortArray::sortByWeightProperty');
     }
 
-    return $form;
+    return $entity_form;
   }
 
 }

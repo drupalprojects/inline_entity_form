@@ -46,12 +46,12 @@ function inline_entity_form_form_alter(&$form, FormStateInterface $form_state, $
  * Implements hook_theme().
  */
 function inline_entity_form_theme() {
-  return array(
-    'inline_entity_form_entity_table' => array(
+  return [
+    'inline_entity_form_entity_table' => [
       'render element' => 'form',
       'function' => 'theme_inline_entity_form_entity_table',
-    ),
-  );
+    ],
+  ];
 }
 
 /**

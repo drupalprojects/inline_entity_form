@@ -112,7 +112,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    * {@inheritdoc}
    */
   public function __sleep() {
-    $keys = array_diff(parent::__sleep(), array('iefHandler'));
+    $keys = array_diff(parent::__sleep(), ['iefHandler']);
     return $keys;
   }
 
@@ -204,16 +204,16 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
         ],
       ],
     ];
-    $element['label_plural'] = array(
+    $element['label_plural'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Plural label'),
       '#default_value' => $this->getSetting('label_plural'),
-      '#states' => array(
-        'visible' => array(
+      '#states' => [
+        'visible' => [
           ':input[name="' . $states_prefix . '[override_labels]"]' => ['checked' => TRUE],
-        ),
-      ),
-    );
+        ],
+      ],
+    ];
 
     return $element;
   }
@@ -373,12 +373,12 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
         $weight = max(array_keys($entities)) + 1;
       }
       // Add the entity to form state, mark it for saving, and close the form.
-      $entities[] = array(
+      $entities[] = [
         'entity' => $entity,
         '_weight' => $weight,
         'form' => NULL,
         'needs_save' => TRUE,
-      );
+      ];
       $form_state->set(['inline_entity_form', $ief_id, 'entities'], $entities);
     }
     else {
