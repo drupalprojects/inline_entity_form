@@ -165,13 +165,13 @@ function inline_entity_form_reference_form_submit($reference_form, FormStateInte
   $form_values = NestedArray::getValue($form_state->getValues(), $reference_form['#parents']);
   $storage = \Drupal::entityTypeManager()->getStorage($reference_form['#entity_type']);
   $entity = $storage->load($form_values['entity_id']);
+  $entities = &$form_state->get(['inline_entity_form', $ief_id, 'entities']);
   // Determine the correct weight of the new element.
   $weight = 0;
-  if ($form_state->has(['inline_entity_form', $ief_id, 'entities'])) {
-    $weight = max(array_keys($form_state->get(['inline_entity_form', $ief_id, 'entities']))) + 1;
+  if ($entities) {
+    $weight = max(array_keys($entities)) + 1;
   }
 
-  $entities = &$form_state->get(['inline_entity_form', $ief_id, 'entities']);
   $entities[] = [
     'entity' => $entity,
     '_weight' => $weight,
