@@ -2,6 +2,7 @@
 
 namespace Drupal\inline_entity_form\Element;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Render\Element;
@@ -27,7 +28,7 @@ class InlineEntityForm extends RenderElement {
       '#language' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
       // Instance of \Drupal\Core\Entity\EntityInterface. Can be NULL
       // when #op is 'add', in which case a new entity will be created.
-      '#entity' => NULL,
+      '#default_value' => NULL,
       '#op' => 'add',
       // The form mode used to display the entity form.
       '#form_mode' => 'default',
@@ -61,7 +62,8 @@ class InlineEntityForm extends RenderElement {
    *   The complete form structure.
    *
    * @throws \InvalidArgumentException
-   *   Thrown when the #entity_type or #bundle properties are empty.
+   *   Thrown when the #entity_type or #bundle properties are empty, or when
+   *   the #default_value property is not an entity.
    *
    * @return array
    *   The built entity form.
@@ -73,11 +75,19 @@ class InlineEntityForm extends RenderElement {
     if (empty($entity_form['#bundle'])) {
       throw new \InvalidArgumentException('The inline_entity_form element requires the #bundle property.');
     }
+    if (isset($entity_form['#default_value']) && !($entity_form['#default_value'] instanceof EntityInterface)) {
+      throw new \InvalidArgumentException('The inline_entity_form #default_value property must be an entity object.');
+    }
+
     if (empty($entity_form['#ief_id'])) {
       $entity_form['#ief_id'] = \Drupal::service('uuid')->generate();
     }
-    // Create a new entity for the add form.
-    if ($entity_form['#op'] == 'add' && empty($entity_form['#entity'])) {
+    if (isset($entity_form['#default_value'])) {
+      // Transfer the #default_value to #entity, as expected by inline forms.
+      $entity_form['#entity'] = $entity_form['#default_value'];
+    }
+    elseif ($entity_form['#op'] == 'add') {
+      // Create a new entity for the add form.
       $entity_type = \Drupal::entityTypeManager()->getDefinition($entity_form['#entity_type']);
       $storage = \Drupal::entityTypeManager()->getStorage($entity_form['#entity_type']);
       $values = [

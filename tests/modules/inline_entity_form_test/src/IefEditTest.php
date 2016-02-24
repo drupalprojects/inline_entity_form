@@ -27,7 +27,7 @@ class IefEditTest extends FormBase {
       '#op' => 'edit',
       '#entity_type' => 'node',
       '#bundle' => 'ief_test_custom',
-      '#entity' => $node,
+      '#default_value' => $node,
       '#form_mode' => $form_mode,
     ];
     $form['submit'] = [

@@ -313,7 +313,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       '#entity_type' => $this->getFieldSetting('target_type'),
       '#bundle' => $bundle,
       '#language' => $language,
-      '#entity' => $entity,
+      '#default_value' => $entity,
       '#op' => $operation,
       '#form_mode' => $this->getSetting('form_mode'),
       '#save_entity' => $save_entity,
