@@ -413,6 +413,40 @@ class InlineEntityFormComplexWebTest extends InlineEntityFormTestBase {
   }
 
   /**
+   * Test if invalid values get correct validation messages in reference existing entity form.
+   *
+   * Also checks if existing entity reference form can be canceled.
+   */
+  public function testReferenceExistingValidation() {
+    $this->setAllowExisting(TRUE);
+
+    $this->drupalGet('node/add/ief_test_complex');
+    $this->checkExistingValidationExpectation('', 'Node field is required.');
+    $this->checkExistingValidationExpectation('Fake Title', "There are no entities matching \"Fake Title\"");
+    // Check adding nodes that cannot be referenced by this field.
+    $bundle_nodes = $this->createNodeForEveryBundle();
+    foreach ($bundle_nodes as $id => $title) {
+      $node = $this->container->get('entity_type.manager')->getStorage('node')->load($id);
+      if ($node->bundle() != 'ief_reference_type') {
+        $this->checkExistingValidationExpectation("$title ($id)", "The referenced entity (node: $id) does not exist.");
+      }
+    }
+
+    $nodes = $this->createReferenceContent(2);
+    foreach ($nodes as $title => $id) {
+      $this->openMultiExistingForm();
+      $edit = [
+        'multi[form][entity_id]' => "$title ($id)",
+      ];
+      // Add a node successfully.
+      $this->drupalPostAjaxForm(NULL, $edit, $this->getButtonName('//input[@type="submit" and @data-drupal-selector="edit-multi-form-actions-ief-reference-save"]'));
+      $this->assertNoFieldByName('multi[form][entity_id]', NULL, 'Existing entity reference autocomplete field removed.');
+      // Try to add the same node again.
+      $this->checkExistingValidationExpectation("$title ($id)", 'The selected node has already been added.');
+    }
+  }
+
+  /**
    * Tests if a referenced content can be edited while the referenced content is
    * newer than the referencing parent node.
    */
@@ -556,6 +590,42 @@ class InlineEntityFormComplexWebTest extends InlineEntityFormTestBase {
       $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add new node 2"]'));
       $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add new node 3"]'));
     }
+  }
+
+  /**
+   * Closes the existing node form on the "multi" field.
+   */
+  protected function cancelExistingMultiForm($edit) {
+    $this->drupalPostAjaxForm(NULL, $edit, $this->getButtonName('//input[@type="submit" and @data-drupal-selector="edit-multi-form-actions-ief-reference-cancel"]'));
+    $this->assertNoFieldByName('multi[form][entity_id]', NULL, 'Existing entity reference autocomplete field removed.');
+  }
+
+  /**
+   * Opens the existing node form on the "multi" field.
+   */
+  protected function openMultiExistingForm() {
+    $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add existing node" and @data-drupal-selector="edit-multi-actions-ief-add-existing"]'));
+    $this->assertResponse(200, 'Opening reference form was successful.');
+    $this->assertFieldByName('multi[form][entity_id]', NULL, 'Existing entity reference autocomplete field found.');
+  }
+
+  /**
+   * Checks that an invalid value for an existing node will be display the expected error.
+   *
+   * @param $existing_node_text
+   *  The text to enter into the existing node text field.
+   * @param $expected_error
+   *  The error message that is expected to be shown.
+   */
+  protected function checkExistingValidationExpectation($existing_node_text, $expected_error) {
+    $edit = [
+      'multi[form][entity_id]' => $existing_node_text,
+    ];
+    $this->openMultiExistingForm();
+
+    $this->drupalPostAjaxForm(NULL, $edit, $this->getButtonName('//input[@type="submit" and @data-drupal-selector="edit-multi-form-actions-ief-reference-save"]'));
+    $this->assertText($expected_error);
+    $this->cancelExistingMultiForm($edit);
   }
 
 }
