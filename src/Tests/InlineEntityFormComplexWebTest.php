@@ -367,6 +367,9 @@ class InlineEntityFormComplexWebTest extends InlineEntityFormTestBase {
     $this->drupalPostForm(NULL, [], t('Save'));
     $this->assertResponse(200, 'Saving parent node was successful.');
 
+    $deleted_node = $this->drupalGetNodeByTitle($title);
+    $this->assertTrue(empty($deleted_node), 'The inline entity was deleted from the site.');
+
     // Checks that entity does nor appear in IEF.
     $this->drupalGet('node/'. $parent_node->id() .'/edit');
     $this->assertNoText($title, 'Deleted inline entity is not present on the page after saving parent.');
