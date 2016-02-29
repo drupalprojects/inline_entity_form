@@ -580,7 +580,6 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     }
 
     $field_name = $this->fieldDefinition->getName();
-
     // Extract the values from $form_state->getValues().
     $parents = array_merge($form['#parents'], [$field_name, 'form']);
     $ief_id = sha1(implode('-', $parents));
@@ -618,20 +617,6 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
         usort($values, function ($a, $b) {
           return SortArray::sortByKeyInt($a, $b, '_weight');
         });
-      }
-
-      if (!empty($trigger['#ief_submit_trigger_all'])) {
-        foreach ($values as $delta => &$item) {
-          /** @var \Drupal\Core\Entity\EntityInterface $entity */
-          $entity = $item['entity'];
-          if (!empty($item['needs_save'])) {
-            $entity->save();
-          }
-          if (!empty($item['delete'])) {
-            $entity->delete();
-            unset($items[$delta]);
-          }
-        }
       }
 
       // Let the widget massage the submitted values.
@@ -890,7 +875,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     }
     else {
       $delete = $form_state->get(['inline_entity_form', $element['#ief_id'], 'delete']);
-      $delete['delete'][] = $entity_id;
+      $delete['delete'][] = $entity;
       $form_state->set(['inline_entity_form', $element['#ief_id'], 'delete'], $delete);
       $form_state->set(['inline_entity_form', $element['#ief_id'], 'entities', $delta], NULL);
     }

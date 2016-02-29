@@ -12,6 +12,7 @@ use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\inline_entity_form\ElementSubmit;
+use Drupal\inline_entity_form\WidgetSubmit;
 use Drupal\inline_entity_form\Form\EntityInlineForm;
 use Drupal\inline_entity_form\Plugin\Field\FieldWidget\InlineEntityFormComplex;
 
@@ -37,8 +38,18 @@ function inline_entity_form_entity_type_build(array &$entity_types) {
  * Implements hook_form_alter().
  */
 function inline_entity_form_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  if ($form_state->get('inline_entity_form')) {
+  // Determine if the current form has an IEF widget.
+  $has_widget = FALSE;
+  foreach ((array) $form_state->get('inline_entity_form') as $inline_state) {
+    if (isset($inline_state['instance'])) {
+      $has_widget = TRUE;
+      break;
+    }
+  }
+
+  if ($has_widget) {
     ElementSubmit::attach($form, $form_state);
+    WidgetSubmit::attach($form, $form_state);
   }
 }
 

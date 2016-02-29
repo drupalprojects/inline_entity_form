@@ -91,10 +91,17 @@ class EntityInlineForm implements InlineFormInterface {
     if (isset($element['#ief_id'])) {
       return $element['#ief_id'];
     }
+    $id = '';
     if (strpos($element['#name'], 'ief-add-submit-') === 0) {
-      return str_replace('ief-add-submit-', '', $element['#name']);
+      $id = str_replace('ief-add-submit-', '', $element['#name']);
     }
-
+    if (strpos($element['#name'], 'ief-edit-submit-') === 0) {
+      $id = str_replace('ief-edit-submit-', '', $element['#name']);
+    }
+    if ($id) {
+      $parts = explode('-', $id);
+      return $parts[0];
+    }
     return '';
   }
 
