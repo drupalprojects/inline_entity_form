@@ -17,9 +17,7 @@ use Drupal\inline_entity_form\Form\EntityInlineForm;
 use Drupal\inline_entity_form\Plugin\Field\FieldWidget\InlineEntityFormComplex;
 
 /**
- * Implements hook_entity_info_alter().
- *
- * @TODO - Add handlers for other core entity types.
+ * Implements hook_entity_type_build().
  */
 function inline_entity_form_entity_type_build(array &$entity_types) {
   /** @var \Drupal\Core\Entity\EntityTypeInterface[] $entity_types */
