@@ -63,11 +63,17 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
     // If we're using ulimited cardinality we don't display one empty item. Form
     // validation will kick in if left empty which esentially means people won't
     // be able to submit w/o creating another entity.
-    if ($element['#cardinality'] == FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED && $element['#max_delta'] > 0) {
+    if (!$form_state->isSubmitted() && $element['#cardinality'] == FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED && $element['#max_delta'] > 0) {
       $max = $element['#max_delta'];
       unset($element[$max]);
       $element['#max_delta'] = $max - 1;
       $items->removeItem($max);
+      // Decrement the items count.
+      $field_name = $element['#field_name'];
+      $parents = $element[0]['#field_parents'];
+      $field_state = static::getWidgetState($parents, $field_name, $form_state);
+      $field_state['items_count']--;
+      static::setWidgetState($parents, $field_name, $form_state, $field_state);
     }
 
     return $element;

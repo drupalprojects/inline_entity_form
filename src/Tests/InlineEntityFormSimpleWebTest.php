@@ -82,12 +82,6 @@ class InlineEntityFormSimpleWebTest extends InlineEntityFormTestBase {
           $this->assertNoFieldByName("single[$next_item_number][inline_entity_form][title][0][value]", NULL, "Item $next_item_number does not appear before 'Add More' clicked");
           if ($item_number < $limit - 1) {
             $this->drupalPostAjaxForm(NULL, $edit, 'single_add_more');
-            // This needed because the first time "add another item" is clicked it does not work
-            // see https://www.drupal.org/node/2664626
-            if ($item_number == 0) {
-              $this->drupalPostAjaxForm(NULL, $edit, 'single_add_more');
-            }
-
             $this->assertFieldByName("single[$next_item_number][inline_entity_form][title][0][value]", NULL, "Item $next_item_number does  appear after 'Add More' clicked");
           }
 
