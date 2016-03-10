@@ -7,10 +7,10 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\Core\Render\Element;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -154,6 +154,9 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
     $settings = $this->getFieldSettings();
     if (!empty($settings['handler_settings']['target_bundles'])) {
       $target_bundles = array_values($settings['handler_settings']['target_bundles']);
+      // Filter out target bundles which no longer exist.
+      $existing_bundles = array_keys($this->entityTypeBundleInfo->getBundleInfo($settings['target_type']));
+      $target_bundles = array_intersect($target_bundles, $existing_bundles);
     }
     else {
       // If no target bundles have been specified then all are available.
@@ -161,6 +164,23 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
     }
 
     return $target_bundles;
+  }
+
+  /**
+   * Gets the bundles for which the current user has create access.
+   *
+   * @return string[]
+   *   The list of bundles.
+   */
+  protected function getCreateBundles() {
+    $create_bundles = [];
+    foreach ($this->getTargetBundles() as $bundle) {
+      if ($this->getAccessHandler()->createAccess($bundle)) {
+        $create_bundles[] = $bundle;
+      }
+    }
+
+    return $create_bundles;
   }
 
   /**
@@ -408,6 +428,37 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       return $this->entityTypeManager->getStorage('entity_form_mode')->load($entity_type_id . '.' . $form_mode);
     }
     return NULL;
+  }
+
+  /**
+   * Gets the access handler for the target entity type.
+   *
+   * @return \Drupal\Core\Entity\EntityAccessControlHandlerInterface
+   *   The access handler.
+   */
+  protected function getAccessHandler() {
+    $entity_type_id = $this->fieldDefinition->getTargetEntityTypeId();
+    return $this->entityTypeManager->getAccessControlHandler($entity_type_id);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function form(FieldItemListInterface $items, array &$form, FormStateInterface $form_state, $get_delta = NULL) {
+    if ($this->canBuildForm($form_state)) {
+      return parent::form($items, $form, $form_state, $get_delta);
+    }
+    return [];
+  }
+
+  /**
+   * Determines if the current user can add any new entities.
+   *
+   * @return bool
+   */
+  protected function canAddNew() {
+    $create_bundles = $this->getCreateBundles();
+    return !empty($create_bundles);
   }
 
 }

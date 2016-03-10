@@ -68,7 +68,6 @@ class InlineEntityFormComplexWebTest extends InlineEntityFormTestBase {
       'edit any ief_test_nested3 content',
       'view own unpublished content',
       'administer content types',
-      'administer node fields',
     ]);
     $this->drupalLogin($this->user);
 
@@ -626,9 +625,13 @@ class InlineEntityFormComplexWebTest extends InlineEntityFormTestBase {
    * Opens the inline entity forms if they are not required.
    *
    * @param boolean $required
-   *  Whether the fields are required.
+   *   Whether the fields are required.
+   * @param array $permissions
+   *   (optional) Permissions to sign testing user in with. You may pass in an
+   *   empty array (default) to use the all the permissions necessary create and
+   *   edit nodes on the form.
    */
-  protected function setupNestedComplexForm($required) {
+  protected function setupNestedComplexForm($required, $permissions = []) {
     /** @var \Drupal\Core\Field\FieldConfigInterface $ief_test_nested1 */
     $ief_test_nested1 = $this->fieldConfigStorage->load('node.ief_test_nested1.test_ref_nested1');
     $ief_test_nested1->setRequired($required);
@@ -638,12 +641,29 @@ class InlineEntityFormComplexWebTest extends InlineEntityFormTestBase {
     $ief_test_nested2->setRequired($required);
     $ief_test_nested2->save();
 
+    if (!$permissions) {
+      $permissions = [
+        'create ief_test_nested1 content',
+        'create ief_test_nested2 content',
+        'create ief_test_nested3 content',
+        'edit any ief_test_nested1 content',
+        'edit any ief_test_nested2 content',
+        'edit any ief_test_nested3 content',
+      ];
+    }
+    $this->user = $this->createUser($permissions);
+    $this->drupalLogin($this->user);
+
     $this->drupalGet('node/add/ief_test_nested1');
 
     if (!$required) {
       // Open inline forms if not required.
-      $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add new node 2"]'));
-      $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add new node 3"]'));
+      if (in_array('create ief_test_nested2 content', $permissions)) {
+        $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add new node 2"]'));
+      }
+      if (in_array('create ief_test_nested3 content', $permissions)) {
+        $this->drupalPostAjaxForm(NULL, [], $this->getButtonName('//input[@type="submit" and @value="Add new node 3"]'));
+      }
     }
   }
 
@@ -681,6 +701,49 @@ class InlineEntityFormComplexWebTest extends InlineEntityFormTestBase {
     $this->drupalPostAjaxForm(NULL, $edit, $this->getButtonName('//input[@type="submit" and @data-drupal-selector="edit-multi-form-actions-ief-reference-save"]'));
     $this->assertText($expected_error);
     $this->cancelExistingMultiForm($edit);
+  }
+
+  /**
+   * Tests entity create access is correct on nested IEF forms.
+   */
+  public function testNestedEntityCreateAccess() {
+    $permissions = [
+      'create ief_test_nested1 content',
+      'create ief_test_nested2 content',
+    ];
+    $this->setupNestedComplexForm(TRUE, $permissions);
+    $this->assertFieldByName('title[0][value]');
+    $this->assertFieldByName('test_ref_nested1[form][inline_entity_form][title][0][value]');
+    $this->assertNoFieldByName('test_ref_nested1[form][inline_entity_form][test_ref_nested2][form][inline_entity_form][title][0][value]', NULL);
+
+    $this->setupNestedComplexForm(FALSE, $permissions);
+    $this->assertNoFieldByXPath('//input[@type="submit" and @value="Add new node 3"]');
+  }
+
+  /**
+   * Tests create access on IEF Complex content type.
+   */
+  public function testComplexEntityCreate() {
+    $user = $this->createUser([
+      'create ief_test_complex content',
+    ]);
+    $this->drupalLogin($user);
+
+    $this->drupalGet('node/add/ief_test_complex');
+    $this->assertNoFieldByName('all_bundles[actions][bundle]', NULL, 'Bundle select is not shown when only one bundle is available.');
+    $this->assertNoFieldByName('multi[form][inline_entity_form][title][0][value]', NULL);
+
+    $user = $this->createUser([
+      'create ief_test_complex content',
+      'create ief_reference_type content'
+    ]);
+    $this->drupalLogin($user);
+
+    $this->drupalGet('node/add/ief_test_complex');
+    $this->assertFieldByName('all_bundles[actions][bundle]', NULL, 'Bundle select is shown when more than one bundle is available.');
+    $this->assertOption('edit-all-bundles-actions-bundle', 'ief_reference_type');
+    $this->assertOption('edit-all-bundles-actions-bundle', 'ief_test_complex');
+    $this->assertFieldByName('multi[form][inline_entity_form][title][0][value]');
   }
 
 }

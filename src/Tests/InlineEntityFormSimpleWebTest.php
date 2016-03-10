@@ -3,6 +3,7 @@
 namespace Drupal\inline_entity_form\Tests;
 
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\node\Entity\Node;
 
 /**
  * Tests the IEF simple widget.
@@ -33,8 +34,9 @@ class InlineEntityFormSimpleWebTest extends InlineEntityFormTestBase {
 
     $this->user = $this->createUser([
       'create ief_simple_single content',
+      'create ief_test_custom content',
       'edit any ief_simple_single content',
-      'edit any ief_test_custom content',
+      'edit own ief_test_custom content',
       'view own unpublished content',
     ]);
 
@@ -74,7 +76,8 @@ class InlineEntityFormSimpleWebTest extends InlineEntityFormTestBase {
         $this->assertNoFieldByXPath($add_more_xpath, NULL, 'Add more button does NOT exist');
       }
 
-      $edit = ['title[0][value]' => 'Host node'];
+      $host_title = 'Host node cardinality: ' . $cardinality;
+      $edit = ['title[0][value]' => $host_title];
       for ($item_number = 0; $item_number < $limit; $item_number++) {
         $edit["single[$item_number][inline_entity_form][title][0][value]"] = 'Child node nr.' . $item_number;
         if ($cardinality == FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED) {
@@ -92,6 +95,9 @@ class InlineEntityFormSimpleWebTest extends InlineEntityFormTestBase {
       for ($item_number = 0; $item_number < $limit; $item_number++) {
         $this->assertText('Child node nr.' . $item_number, 'Label of referenced entity found.');
       }
+
+      $host_node = $this->getNodeByTitle($host_title);
+      $this->checkEditAccess($host_node, $limit);
     }
   }
 
@@ -138,6 +144,49 @@ class InlineEntityFormSimpleWebTest extends InlineEntityFormTestBase {
         $this->assertEqual($child_node->positive_int[0]->value,1, 'Child node int field correct.');
         $this->assertEqual($child_node->bundle(),'ief_test_custom', 'Child node is correct bundle.');
       }
+    }
+  }
+
+  /**
+   * Tests if the entity create access works in simple widget.
+   */
+  public function testSimpleCreateAccess() {
+    // Create a user who does not have access to create ief_test_custom nodes.
+    $this->user = $this->createUser([
+      'create ief_simple_single content',
+    ]);
+    $this->drupalLogin($this->user);
+    $this->drupalGet('node/add/ief_simple_single');
+    $this->assertNoFieldByName('single[0][inline_entity_form][title][0][value]', NULL);
+  }
+
+  /**
+   * Tests that user only has access to the their own nodes.
+   *
+   * @param \Drupal\node\Entity\Node $host_node
+   *   The node of the type of ief_simple_single
+   * @param int $child_count
+   *   The number of entity reference values in the "single" field.
+   */
+  protected function checkEditAccess(Node $host_node, $child_count) {
+    $other_user = $this->createUser([
+      'edit own ief_test_custom content',
+      'edit any ief_simple_single content',
+    ]);
+    /** @var  \Drupal\node\Entity\Node $first_child_node */
+    $first_child_node = $host_node->single[0]->entity;
+    $first_child_node->setOwner($other_user);
+    $first_child_node->save();
+    $this->drupalGet("node/{$host_node->id()}/edit");
+    $this->assertText($first_child_node->label());
+    $this->assertNoFieldByName('single[0][inline_entity_form][title][0][value]', NULL, 'Form of child node with no edit access is not found.');
+    // Check that the forms for other child nodes(if any) appear on the form.
+    $delta = 1;
+    while ($delta < $child_count) {
+      /** @var \Drupal\node\Entity\Node $child_node */
+      $child_node = $host_node->single[$delta]->entity;
+      $this->assertFieldByName("single[$delta][inline_entity_form][title][0][value]", $child_node->label(), 'Form of child node with edit access is  found.');
+      $delta++;
     }
   }
 

@@ -7,6 +7,7 @@ use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
 
 /**
  * Simple inline widget.
@@ -26,10 +27,6 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
    * {@inheritdoc}
    */
   public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state) {
-    if (!$this->canBuildForm($form_state)) {
-      return $element;
-    }
-
     $element['#type'] = 'fieldset';
     $this->setIefId(sha1($items->getName() . '-ief-single-' . $delta));
     $entity = NULL;
@@ -51,6 +48,20 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
     $bundle = reset($this->getFieldSetting('handler_settings')['target_bundles']);
     $element['inline_entity_form'] = $this->getInlineEntityForm($op, $bundle, $language, $delta, $parents, $entity, TRUE);
 
+    if ($op == 'edit') {
+      /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
+      if (!$entity->access('update')) {
+        // The user isn't allowed to edit the entity, but still needs to see
+        // it, to be able to reorder values.
+        $element['entity_label'] = [
+          '#type' => 'markup',
+          '#markup' => $entity->label(),
+        ];
+        // Hide the inline form. getInlineEntityForm() still needed to be
+        // called because otherwise the field re-ordering doesn't work.
+        $element['inline_entity_form']['#access'] = FALSE;
+      }
+    }
     return $element;
   }
 
@@ -74,6 +85,20 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
       $field_state = static::getWidgetState($parents, $field_name, $form_state);
       $field_state['items_count']--;
       static::setWidgetState($parents, $field_name, $form_state, $field_state);
+    }
+
+    // Remove add options if the user cannot add new entities.
+    if (!$this->canAddNew()) {
+      if (isset($element['add_more'])) {
+        unset($element['add_more']);
+      }
+      foreach (Element::children($element) as $delta) {
+        if (isset($element[$delta]['inline_entity_form'])) {
+          if ($element[$delta]['inline_entity_form']['#op'] == 'add') {
+            unset($element[$delta]);
+          }
+        }
+      }
     }
 
     return $element;
