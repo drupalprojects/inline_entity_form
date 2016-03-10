@@ -244,12 +244,19 @@ class EntityInlineForm implements InlineFormInterface {
     if ($entity_form['#save_entity']) {
       // The entity was already validated in entityFormValidate().
       $entity->setValidationRequired(FALSE);
-      $entity->save();
+      $this->save($entity);
     }
     // TODO - this is field-only part of the code. Figure out how to refactor.
     if ($form_state->has(['inline_entity_form', $entity_form['#ief_id']])) {
       $form_state->set(['inline_entity_form', $entity_form['#ief_id'], 'entity'], $entity);
     }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function save(EntityInterface $entity) {
+    $entity->save();
   }
 
   /**

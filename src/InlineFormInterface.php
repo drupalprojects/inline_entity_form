@@ -107,6 +107,17 @@ interface InlineFormInterface extends EntityHandlerInterface {
   public function entityFormSubmit(&$entity_form, FormStateInterface $form_state);
 
   /**
+   * Saves the given entity.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity.
+   *
+   * @return int
+   *   Either SAVED_NEW or SAVED_UPDATED, depending on the operation performed.
+   */
+  public function save(EntityInterface $entity);
+
+  /**
    * Delete permanently saved entities.
    *
    * @param int[] $ids
