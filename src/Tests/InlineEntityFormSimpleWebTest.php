@@ -86,8 +86,10 @@ class InlineEntityFormSimpleWebTest extends InlineEntityFormTestBase {
           if ($item_number < $limit - 1) {
             $this->drupalPostAjaxForm(NULL, $edit, 'single_add_more');
             $this->assertFieldByName("single[$next_item_number][inline_entity_form][title][0][value]", NULL, "Item $next_item_number does  appear after 'Add More' clicked");
+            // Make sure only 1 item is added.
+            $unexpected_item_number = $next_item_number + 1;
+            $this->assertNoFieldByName("single[$unexpected_item_number][inline_entity_form][title][0][value]", NULL, "Extra Item $unexpected_item_number is not added after 'Add More' clicked");
           }
-
         }
       }
       $this->drupalPostForm(NULL, $edit, t('Save'));
@@ -97,7 +99,7 @@ class InlineEntityFormSimpleWebTest extends InlineEntityFormTestBase {
       }
 
       $host_node = $this->getNodeByTitle($host_title);
-      $this->checkEditAccess($host_node, $limit);
+      $this->checkEditAccess($host_node, $limit, $cardinality);
     }
   }
 
@@ -168,7 +170,7 @@ class InlineEntityFormSimpleWebTest extends InlineEntityFormTestBase {
    * @param int $child_count
    *   The number of entity reference values in the "single" field.
    */
-  protected function checkEditAccess(Node $host_node, $child_count) {
+  protected function checkEditAccess(Node $host_node, $child_count, $cardinality) {
     $other_user = $this->createUser([
       'edit own ief_test_custom content',
       'edit any ief_simple_single content',
@@ -185,8 +187,19 @@ class InlineEntityFormSimpleWebTest extends InlineEntityFormTestBase {
     while ($delta < $child_count) {
       /** @var \Drupal\node\Entity\Node $child_node */
       $child_node = $host_node->single[$delta]->entity;
-      $this->assertFieldByName("single[$delta][inline_entity_form][title][0][value]", $child_node->label(), 'Form of child node with edit access is  found.');
+      $this->assertFieldByName("single[$delta][inline_entity_form][title][0][value]", $child_node->label(), 'Form of child node with edit access is found.');
       $delta++;
+    }
+    // Check that there is NOT an extra "add" form when editing.
+    $unexpected_item_number = $child_count;
+    $this->assertNoFieldByName("single[$unexpected_item_number][inline_entity_form][title][0][value]", NULL, 'No empty "add" entity form is found on edit.');
+    if ($cardinality == FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED) {
+      $next_item_number = $child_count;
+      $this->drupalPostAjaxForm(NULL, [], 'single_add_more');
+      $this->assertFieldByName("single[$next_item_number][inline_entity_form][title][0][value]", NULL, "Item $next_item_number does appear after 'Add More' clicked");
+      // Make sure only 1 item is added.
+      $unexpected_item_number = $next_item_number + 1;
+      $this->assertNoFieldByName("single[$unexpected_item_number][inline_entity_form][title][0][value]", NULL, "Extra Item $unexpected_item_number is not added after 'Add More' clicked");
     }
   }
 
