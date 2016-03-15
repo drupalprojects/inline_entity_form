@@ -9,7 +9,7 @@ use Drupal\node\Entity\Node;
  *
  * @group inline_entity_form
  */
-class InlineEntityFormComplexWebTest extends InlineEntityFormTestBase {
+class ComplexWidgetWebTest extends InlineEntityFormTestBase {
 
   /**
    * Modules to enable.

@@ -7,7 +7,7 @@ namespace Drupal\inline_entity_form\Tests;
  *
  * @group inline_entity_form
  */
-class InlineEntityFormElementWebTest extends InlineEntityFormTestBase {
+class ElementWebTest extends InlineEntityFormTestBase {
 
   /**
    * Modules to enable.
