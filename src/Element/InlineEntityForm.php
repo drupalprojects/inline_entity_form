@@ -99,14 +99,6 @@ class InlineEntityForm extends RenderElement {
       $entity_form['#entity'] = $storage->create($values);
     }
 
-    // Put some basic information about IEF into form state.
-    $state = $form_state->has(['inline_entity_form', $entity_form['#ief_id']]) ? $form_state->get(['inline_entity_form', $entity_form['#ief_id']]) : [];
-    $state += [
-      'op' => $entity_form['#op'],
-      'entity' => $entity_form['#entity'],
-    ];
-    $form_state->set(['inline_entity_form', $entity_form['#ief_id']], $state);
-
     $inline_form_handler = static::getInlineFormHandler($entity_form['#entity_type']);
     $entity_form = $inline_form_handler->entityForm($entity_form, $form_state);
     // The form element can't rely on inline_entity_form_form_alter() calling
@@ -124,9 +116,10 @@ class InlineEntityForm extends RenderElement {
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The current state of the form.
    */
-  public static function validateEntityForm($entity_form, FormStateInterface $form_state) {
+  public static function validateEntityForm(&$entity_form, FormStateInterface $form_state) {
     $inline_form_handler = static::getInlineFormHandler($entity_form['#entity_type']);
     $inline_form_handler->entityFormValidate($entity_form, $form_state);
+    $form_state->setValueForElement($entity_form, $entity_form['#entity']);
   }
 
   /**

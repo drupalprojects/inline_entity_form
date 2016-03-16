@@ -120,14 +120,9 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
     $values = [];
     foreach ($items as $delta => $value) {
       $this->setIefId(sha1($items->getName() . '-ief-single-' . $delta));
-
       /** @var \Drupal\Core\Entity\EntityInterface $entity */
-      if (!$entity = $form_state->get(['inline_entity_form', $this->getIefId(), 'entity'])) {
-        return;
-      }
-
+      $entity = $submitted_values[$delta]['inline_entity_form'];
       $weight = isset($submitted_values[$delta]['_weight']) ? $submitted_values[$delta]['_weight'] : 0;
-
       $values[$weight] = ['entity' => $entity];
     }
 
