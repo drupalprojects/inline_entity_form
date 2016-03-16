@@ -103,7 +103,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    */
   protected function createInlineFormHandler() {
     if (!isset($this->inlineFormHandler)) {
-      $target_type = $this->fieldDefinition->getFieldStorageDefinition()->getSetting('target_type');
+      $target_type = $this->getFieldSetting('target_type');
       $this->inlineFormHandler = $this->entityTypeManager->getHandler($target_type, 'inline_form');
     }
   }
@@ -437,7 +437,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    *   The access handler.
    */
   protected function getAccessHandler() {
-    $entity_type_id = $this->fieldDefinition->getTargetEntityTypeId();
+    $entity_type_id = $this->getFieldSetting('target_type');
     return $this->entityTypeManager->getAccessControlHandler($entity_type_id);
   }
 
