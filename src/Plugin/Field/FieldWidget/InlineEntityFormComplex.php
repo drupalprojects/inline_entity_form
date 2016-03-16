@@ -578,7 +578,6 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     }
 
     $field_name = $this->fieldDefinition->getName();
-    // Extract the values from $form_state->getValues().
     $parents = array_merge($form['#parents'], [$field_name, 'form']);
     $ief_id = sha1(implode('-', $parents));
     $this->setIefId($ief_id);
@@ -594,13 +593,18 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     }
 
     if ($key_exists) {
-      // If the widget form is open then need to move entity.
-      if (empty($values['entities']) && !empty($values['entity'])) {
-        $values['entities'] = [['entity' => $values['entity']]];
+      // If the inline entity form is still open, then its entity hasn't
+      // been transfered to the IEF form state yet.
+      if (empty($values['entities']) && !empty($values['form'])) {
+        // @todo Do the same for reference forms.
+        if ($values['form'] == 'add') {
+          $add_form_parents = array_merge($parents, ['inline_entity_form']);
+          $entity = $form_state->getValue($add_form_parents);
+          $values['entities'][] = ['entity' => $entity];
+        }
       }
 
       $values = $values['entities'];
-
       // Account for drag-and-drop reordering if needed.
       if (!$this->handlesMultipleValues()) {
         // Remove the 'value' of the 'add more' button.

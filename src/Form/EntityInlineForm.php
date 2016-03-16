@@ -219,11 +219,6 @@ class EntityInlineForm implements InlineFormInterface {
       $form_display = $this->getFormDisplay($entity, $entity_form['#form_mode']);
       $form_display->validateFormValues($entity, $entity_form, $form_state);
 
-      // TODO - this is field-only part of the code. Figure out how to refactor.
-      if ($form_state->has(['inline_entity_form', $entity_form['#ief_id']])) {
-        $form_state->set(['inline_entity_form', $entity_form['#ief_id'], 'entity'], $entity);
-      }
-
       foreach($form_state->getErrors() as $name => $message) {
         // $name may be unknown in $form_state and
         // $form_state->setErrorByName($name, $message) may suppress the error message.
