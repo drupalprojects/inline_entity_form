@@ -185,7 +185,7 @@ class EntityInlineForm implements InlineFormInterface {
   /**
    * {@inheritdoc}
    */
-  public function entityForm($entity_form, FormStateInterface $form_state) {
+  public function entityForm(array $entity_form, FormStateInterface $form_state) {
     /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
     $entity = $entity_form['#entity'];
     $form_display = $this->getFormDisplay($entity, $entity_form['#form_mode']);
@@ -200,7 +200,7 @@ class EntityInlineForm implements InlineFormInterface {
   /**
    * {@inheritdoc}
    */
-  public function entityFormValidate($entity_form, FormStateInterface $form_state) {
+  public function entityFormValidate(array &$entity_form, FormStateInterface $form_state) {
     // We only do full entity validation if entire entity is to be saved, which
     // means it should be complete. Don't validate for other requests (like file
     // uploads, etc.).
@@ -230,7 +230,7 @@ class EntityInlineForm implements InlineFormInterface {
   /**
    * {@inheritdoc}
    */
-  public function entityFormSubmit(&$entity_form, FormStateInterface $form_state) {
+  public function entityFormSubmit(array &$entity_form, FormStateInterface $form_state) {
     $form_state->cleanValues();
     /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
     $entity = $entity_form['#entity'];
