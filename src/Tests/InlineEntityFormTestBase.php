@@ -17,6 +17,22 @@ abstract class InlineEntityFormTestBase extends WebTestBase {
   protected $user;
 
   /**
+   * Node storage.
+   *
+   * @var \Drupal\Core\Entity\ContentEntityStorageInterface;
+   */
+  protected $nodeStorage;
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp() {
+    parent::setUp();
+    $this->nodeStorage = $this->container->get('entity_type.manager')->getStorage('node');
+  }
+
+
+  /**
    * Gets IEF button name.
    *
    * @param array $xpath

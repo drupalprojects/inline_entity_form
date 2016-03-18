@@ -3,7 +3,7 @@
 namespace Drupal\inline_entity_form\Tests;
 
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
-use Drupal\node\Entity\Node;
+use Drupal\node\NodeInterface;
 
 /**
  * Tests the IEF simple widget.
@@ -170,7 +170,7 @@ class SimpleWidgetWebTest extends InlineEntityFormTestBase {
    * @param int $child_count
    *   The number of entity reference values in the "single" field.
    */
-  protected function checkEditAccess(Node $host_node, $child_count, $cardinality) {
+  protected function checkEditAccess(NodeInterface $host_node, $child_count, $cardinality) {
     $other_user = $this->createUser([
       'edit own ief_test_custom content',
       'edit any ief_simple_single content',
@@ -200,6 +200,41 @@ class SimpleWidgetWebTest extends InlineEntityFormTestBase {
       // Make sure only 1 item is added.
       $unexpected_item_number = $next_item_number + 1;
       $this->assertNoFieldByName("single[$unexpected_item_number][inline_entity_form][title][0][value]", NULL, "Extra Item $unexpected_item_number is not added after 'Add More' clicked");
+    }
+
+    // Now that we have confirmed the correct fields appear, lets update the
+    // values and save them. We do not have access to form for delta 0 because
+    // it is owned by another user.
+    $delta = 1;
+    $new_titles = [];
+    $edit = [];
+    // Loop through an update all child node titles.
+    while ($delta < $child_count) {
+      /** @var \Drupal\node\Entity\Node $child_node */
+      $child_node = $host_node->single[$delta]->entity;
+      $new_titles[$delta] = $child_node->label() . ' - updated';
+      $edit["single[$delta][inline_entity_form][title][0][value]"] = $new_titles[$delta];
+      $delta++;
+    }
+    // If CARDINALITY_UNLIMITED then we should have 1 extra form open.
+    if ($cardinality == FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED) {
+      $new_titles[$delta] = 'Title for new child';
+      $edit["single[$delta][inline_entity_form][title][0][value]"] = $new_titles[$delta];
+    }
+    $this->drupalPostForm(NULL, $edit, t('Save'));
+    $this->assertText("IEF single simple {$host_node->label()} has been updated.");
+
+    // Reset cache for nodes.
+    $node_ids = [$host_node->id()];
+    foreach ($host_node->single as $item) {
+      $node_ids[] = $item->entity->id();
+    }
+    $this->nodeStorage->resetCache($node_ids);
+    $host_node = $this->nodeStorage->load($host_node->id());
+    // Check that titles were updated.
+    foreach ($new_titles as $delta => $new_title) {
+      $child_node = $host_node->single[$delta]->entity;
+      $this->assertEqual($child_node->label(), $new_title, "Child $delta node title updated");
     }
   }
 
