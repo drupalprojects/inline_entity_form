@@ -199,7 +199,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    * {@inheritdoc}
    */
   public function settingsForm(array $form, FormStateInterface $form_state) {
-    $entity_type_id = $this->fieldDefinition->getTargetEntityTypeId();
+    $entity_type_id = $this->getFieldSetting('target_type');
     $states_prefix = 'fields[' . $this->fieldDefinition->getName() . '][settings_edit_form][settings]';
     $element = [];
     $element['form_mode'] = [
@@ -424,7 +424,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   protected function getEntityFormMode() {
     $form_mode = $this->getSetting('form_mode');
     if ($form_mode != 'default') {
-      $entity_type_id = $this->fieldDefinition->getTargetEntityTypeId();
+      $entity_type_id = $this->getFieldSetting('target_type');
       return $this->entityTypeManager->getStorage('entity_form_mode')->load($entity_type_id . '.' . $form_mode);
     }
     return NULL;
