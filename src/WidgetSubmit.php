@@ -52,10 +52,8 @@ class WidgetSubmit {
       }
 
       /** @var \Drupal\Core\Entity\ContentEntityInterface $entities */
-      foreach ($widget_state['delete'] as $entities) {
-        foreach ($entities as $entity) {
-          $entity->delete();
-        }
+      foreach ($widget_state['delete'] as $entity) {
+        $entity->delete();
       }
       unset($widget_state['delete']);
     }

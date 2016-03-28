@@ -28,7 +28,6 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
    */
   public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state) {
     $element['#type'] = 'fieldset';
-    $this->setIefId(sha1($items->getName() . '-ief-single-' . $delta));
     $entity = NULL;
     if ($items->get($delta)->target_id) {
       $entity = $items->get($delta)->entity;
@@ -119,7 +118,6 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
 
     $values = [];
     foreach ($items as $delta => $value) {
-      $this->setIefId(sha1($items->getName() . '-ief-single-' . $delta));
       /** @var \Drupal\Core\Entity\EntityInterface $entity */
       $entity = $submitted_values[$delta]['inline_entity_form'];
       $weight = isset($submitted_values[$delta]['_weight']) ? $submitted_values[$delta]['_weight'] : 0;

@@ -308,6 +308,40 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   }
 
   /**
+   * Prepares the form state for the current widget.
+   *
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   * @param Drupal\Core\Field\FieldItemListInterface $items
+   *   The field values.
+   */
+  protected function prepareFormState(FormStateInterface $form_state, FieldItemListInterface $items) {
+    $widget_state = $form_state->get(['inline_entity_form', $this->iefId]);
+    if (empty($widget_state)) {
+      $widget_state = [
+        'instance' => $this->fieldDefinition,
+        'form' => NULL,
+        'delete' => [],
+        'entities' => [],
+      ];
+      // Store the $items entities in the widget state, for futher manipulation.
+      foreach ($items as $delta => $item) {
+        $entity = $item->entity;
+        // The $entity can be NULL if the reference is broken.
+        if ($entity) {
+          $widget_state['entities'][$delta] = [
+            'entity' => $entity,
+            '_weight' => $delta,
+            'form' => NULL,
+            'needs_save' => $entity->isNew(),
+          ];
+        }
+      }
+      $form_state->set(['inline_entity_form', $this->iefId], $widget_state);
+    }
+  }
+
+  /**
    * Gets inline entity form element.
    *
    * @param string $operation

@@ -208,51 +208,8 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
 
     $element['#attached']['library'][] = 'inline_entity_form/widget';
 
-    // Initialize the IEF array in form state.
-    if (!$form_state->has(['inline_entity_form', $this->getIefId(), 'settings'])) {
-      $form_state->set(['inline_entity_form', $this->getIefId(), 'settings'], $this->getFieldSettings());
-    }
-
-    if (!$form_state->has(['inline_entity_form', $this->getIefId(), 'instance'])) {
-      $form_state->set(['inline_entity_form', $this->getIefId(), 'instance'], $this->fieldDefinition);
-    }
-
-    if (!$form_state->has(['inline_entity_form', $this->getIefId(), 'form'])) {
-      $form_state->set(['inline_entity_form', $this->getIefId(), 'form'], NULL);
-    }
-
-    if (!$form_state->has(['inline_entity_form', $this->getIefId(), 'array_parents'])) {
-      $form_state->set(['inline_entity_form', $this->getIefId(), 'array_parents'], $parents);
-    }
-
+    $this->prepareFormState($form_state, $items);
     $entities = $form_state->get(['inline_entity_form', $this->getIefId(), 'entities']);
-    if (!isset($entities)) {
-      // Load the entities from the $items array and store them in the form
-      // state for further manipulation.
-      $form_state->set(['inline_entity_form', $this->getIefId(), 'entities'], array());
-
-      if (count($items)) {
-        foreach ($items as $delta => $item) {
-          if ($item->entity && is_object($item->entity)) {
-            $form_state->set(['inline_entity_form', $this->getIefId(), 'entities', $delta], array(
-              'entity' => $item->entity,
-              '_weight' => $delta,
-              'form' => NULL,
-              'needs_save' => FALSE,
-            ));
-          }
-        }
-      }
-
-      $entities = $form_state->get(['inline_entity_form', $this->getIefId(), 'entities']);
-    }
-
-    // Remove any leftover data from removed entity references.
-    foreach ($entities as $key => $value) {
-      if (!isset($value) || !isset($value['entity'])) {
-        unset($entities[$key]);
-      }
-    }
 
     // Build the "Multiple value" widget.
     // TODO - does this belong in #element_validate?
@@ -871,16 +828,16 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     $form_values = NestedArray::getValue($form_state->getValues(), $element['entities'][$delta]['form']['#parents']);
     $form_state->setRebuild();
 
+    $widget_state = $form_state->get(['inline_entity_form', $element['#ief_id']]);
     // This entity hasn't been saved yet, we can just unlink it.
     if (empty($entity_id) || ($widget['settings']['allow_existing'] && empty($form_values['delete']))) {
-      $form_state->set(['inline_entity_form', $element['#ief_id'], 'entities', $delta], NULL);
+      unset($widget_state['entities'][$delta]);
     }
     else {
-      $delete = $form_state->get(['inline_entity_form', $element['#ief_id'], 'delete']);
-      $delete['delete'][] = $entity;
-      $form_state->set(['inline_entity_form', $element['#ief_id'], 'delete'], $delete);
-      $form_state->set(['inline_entity_form', $element['#ief_id'], 'entities', $delta], NULL);
+      $widget_state['delete'][] = $entity;
+      unset($widget_state['entities'][$delta]);
     }
+    $form_state->set(['inline_entity_form', $element['#ief_id']], $widget_state);
   }
 
   /**
