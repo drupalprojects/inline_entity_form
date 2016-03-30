@@ -354,14 +354,11 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    *   Array of parent element names.
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   Optional entity object.
-   * @param bool $save_entity
-   *   IEF will attempt to save entity after attaching all field values if set to
-   *   TRUE. Defaults to FALSE.
    *
    * @return array
    *   IEF form element structure.
    */
-  protected function getInlineEntityForm($operation, $bundle, $language, $delta, array $parents, EntityInterface $entity = NULL, $save_entity = FALSE) {
+  protected function getInlineEntityForm($operation, $bundle, $language, $delta, array $parents, EntityInterface $entity = NULL) {
     $element = [
       '#type' => 'inline_entity_form',
       '#entity_type' => $this->getFieldSetting('target_type'),
@@ -370,7 +367,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       '#default_value' => $entity,
       '#op' => $operation,
       '#form_mode' => $this->getSetting('form_mode'),
-      '#save_entity' => $save_entity,
+      '#save_entity' => FALSE,
       '#ief_row_delta' => $delta,
       // Used by Field API and controller methods to find the relevant
       // values in $form_state.

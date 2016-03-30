@@ -27,6 +27,10 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
    * {@inheritdoc}
    */
   public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state) {
+    // Trick inline_entity_form_form_alter() into attaching the handlers,
+    // WidgetSubmit will be needed once extractFormValues fills the $form_state.
+    $form_state->set('inline_entity_form', []);
+
     $element['#type'] = 'fieldset';
     $entity = NULL;
     if ($items->get($delta)->target_id) {
@@ -36,7 +40,6 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
         return $element;
       }
     }
-
     $op = isset($entity) ? 'edit' : 'add';
     $language = $items->getParent()->getValue()->language()->getId();
     $parents = array_merge($element['#field_parents'], [
@@ -45,7 +48,7 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
       'inline_entity_form'
     ]);
     $bundle = reset($this->getFieldSetting('handler_settings')['target_bundles']);
-    $element['inline_entity_form'] = $this->getInlineEntityForm($op, $bundle, $language, $delta, $parents, $entity, TRUE);
+    $element['inline_entity_form'] = $this->getInlineEntityForm($op, $bundle, $language, $delta, $parents, $entity);
 
     if ($op == 'edit') {
       /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
@@ -113,9 +116,8 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
     }
 
     $field_name = $this->fieldDefinition->getName();
-    $path = array_merge($form['#parents'], array($field_name));
-    $submitted_values = $form_state->getValue($path);
-
+    $parents = array_merge($form['#parents'], [$field_name]);
+    $submitted_values = $form_state->getValue($parents);
     $values = [];
     foreach ($items as $delta => $value) {
       /** @var \Drupal\Core\Entity\EntityInterface $entity */
@@ -134,6 +136,22 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
     // Assign the values and remove the empty ones.
     $items->setValue($values);
     $items->filterEmptyItems();
+
+    // Populate the IEF form state with $items so that WidgetSubmit can
+    // perform the necessary saves.
+    $ief_id = sha1(implode('-', $parents));
+    $widget_state = [
+      'instance' => $this->fieldDefinition,
+      'delete' => [],
+      'entities' => [],
+    ];
+    foreach ($items as $delta => $value) {
+      $widget_state['entities'][$delta] = [
+        'entity' => $value->entity,
+        'needs_save' => TRUE,
+      ];
+    }
+    $form_state->set(['inline_entity_form', $ief_id], $widget_state);
 
     // Put delta mapping in $form_state, so that flagErrors() can use it.
     $field_name = $this->fieldDefinition->getName();
