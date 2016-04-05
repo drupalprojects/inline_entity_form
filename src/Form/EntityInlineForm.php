@@ -79,48 +79,6 @@ class EntityInlineForm implements InlineFormInterface {
   }
 
   /**
-   * Gets the element id for the given form element.
-   *
-   * @param array $element
-   *  The form element.
-   *
-   * @return string
-   *  The IEF id.
-   */
-  public static function getElementId($element) {
-    if (isset($element['#ief_id'])) {
-      return $element['#ief_id'];
-    }
-    $id = '';
-    if (strpos($element['#name'], 'ief-add-submit-') === 0) {
-      $id = str_replace('ief-add-submit-', '', $element['#name']);
-    }
-    if (strpos($element['#name'], 'ief-edit-submit-') === 0) {
-      $id = str_replace('ief-edit-submit-', '', $element['#name']);
-    }
-    if ($id) {
-      $parts = explode('-', $id);
-      return $parts[0];
-    }
-    return '';
-  }
-
-  /**
-   * Determines if the form was submitted by an element for this IEF Form.
-   *
-   * @param array $entity_form
-   *  The entity form.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *  The current state of the form.
-   *
-   * @return bool
-   */
-  public static function triggeredByCurrent(array $entity_form, FormStateInterface $form_state) {
-    $trigger_ief_id = static::getElementId($form_state->getTriggeringElement());
-    return $trigger_ief_id == $entity_form['#ief_id'];
-  }
-
-  /**
    * {@inheritdoc}
    */
   public function getEntityType() {
@@ -201,18 +159,10 @@ class EntityInlineForm implements InlineFormInterface {
    * {@inheritdoc}
    */
   public function entityFormValidate(array &$entity_form, FormStateInterface $form_state) {
-    // We only do full entity validation if entire entity is to be saved, which
-    // means it should be complete. Don't validate for other requests (like file
-    // uploads, etc.).
+    // Perform entity validation only if the inline form was submitted,
+    // skipping other requests such as file uploads.
     $triggering_element = $form_state->getTriggeringElement();
-    $validate = TRUE;
-    if (empty($triggering_element['#ief_submit_trigger_all'])) {
-      $element_name = end($triggering_element['#array_parents']);
-      $validate = in_array($element_name, ['ief_add_save', 'ief_edit_save'])
-        && static::triggeredByCurrent($entity_form, $form_state);
-    }
-
-    if ($validate) {
+    if (!empty($triggering_element['#ief_submit_trigger'])) {
       /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
       $entity = $entity_form['#entity'];
       $this->buildEntity($entity_form, $entity, $form_state);
