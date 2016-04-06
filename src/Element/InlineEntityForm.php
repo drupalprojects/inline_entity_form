@@ -133,6 +133,9 @@ class InlineEntityForm extends RenderElement {
   public static function submitEntityForm(&$entity_form, FormStateInterface $form_state) {
     $inline_form_handler = static::getInlineFormHandler($entity_form['#entity_type']);
     $inline_form_handler->entityFormSubmit($entity_form, $form_state);
+    if ($entity_form['#save_entity']) {
+      $inline_form_handler->save($entity_form['#entity']);
+    }
   }
 
   /**

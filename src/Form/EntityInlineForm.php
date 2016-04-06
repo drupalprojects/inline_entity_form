@@ -168,6 +168,7 @@ class EntityInlineForm implements InlineFormInterface {
       $this->buildEntity($entity_form, $entity, $form_state);
       $form_display = $this->getFormDisplay($entity, $entity_form['#form_mode']);
       $form_display->validateFormValues($entity, $entity_form, $form_state);
+      $entity->setValidationRequired(FALSE);
 
       foreach($form_state->getErrors() as $name => $message) {
         // $name may be unknown in $form_state and
@@ -185,16 +186,6 @@ class EntityInlineForm implements InlineFormInterface {
     /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
     $entity = $entity_form['#entity'];
     $this->buildEntity($entity_form, $entity, $form_state);
-
-    if ($entity_form['#save_entity']) {
-      // The entity was already validated in entityFormValidate().
-      $entity->setValidationRequired(FALSE);
-      $this->save($entity);
-    }
-    // TODO - this is field-only part of the code. Figure out how to refactor.
-    if ($form_state->has(['inline_entity_form', $entity_form['#ief_id']])) {
-      $form_state->set(['inline_entity_form', $entity_form['#ief_id'], 'entity'], $entity);
-    }
   }
 
   /**
