@@ -24,7 +24,6 @@ class IefEditTest extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state, Node $node = NULL, $form_mode = 'default') {
     $form['inline_entity_form'] = [
       '#type' => 'inline_entity_form',
-      '#op' => 'edit',
       '#entity_type' => 'node',
       '#bundle' => 'ief_test_custom',
       '#default_value' => $node,

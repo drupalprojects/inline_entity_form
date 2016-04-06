@@ -18,6 +18,7 @@ use Drupal\inline_entity_form\ElementSubmit;
  *   '#type' => 'inline_entity_form',
  *   '#entity_type' => 'node',
  *   '#bundle' => 'article',
+ *   // If the #default_value is NULL, a new entity will be created.
  *   '#default_value' => $loaded_article,
  * ];
  * @endcode
@@ -39,14 +40,15 @@ class InlineEntityForm extends RenderElement {
       '#entity_type' => NULL,
       '#bundle' => NULL,
       '#language' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
-      // Instance of \Drupal\Core\Entity\EntityInterface. Can be NULL
-      // when #op is 'add', in which case a new entity will be created.
+      // Instance of \Drupal\Core\Entity\EntityInterface. If NULL, a new
+      // entity will be created.
       '#default_value' => NULL,
-      '#op' => 'add',
       // The form mode used to display the entity form.
       '#form_mode' => 'default',
       // Will save entity on submit if set to TRUE.
       '#save_entity' => TRUE,
+      // 'add' or 'edit'. If NULL, determined by whether the entity is new.
+      '#op' => NULL,
       '#process' => [
         [$class, 'processEntityForm'],
       ],
@@ -99,8 +101,8 @@ class InlineEntityForm extends RenderElement {
       // Transfer the #default_value to #entity, as expected by inline forms.
       $entity_form['#entity'] = $entity_form['#default_value'];
     }
-    elseif ($entity_form['#op'] == 'add') {
-      // Create a new entity for the add form.
+    else {
+      // This is an add operation, create a new entity.
       $entity_type = \Drupal::entityTypeManager()->getDefinition($entity_form['#entity_type']);
       $storage = \Drupal::entityTypeManager()->getStorage($entity_form['#entity_type']);
       $values = [
@@ -110,6 +112,9 @@ class InlineEntityForm extends RenderElement {
         $values[$bundle_key] = $entity_form['#bundle'];
       }
       $entity_form['#entity'] = $storage->create($values);
+    }
+    if (!isset($entity_form['#op'])) {
+      $entity_form['#op'] = $entity_form['#entity']->isNew() ? 'add' : 'edit';
     }
 
     $inline_form_handler = static::getInlineFormHandler($entity_form['#entity_type']);
