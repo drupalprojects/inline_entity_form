@@ -213,19 +213,7 @@ class ComplexWidgetWebTest extends InlineEntityFormTestBase {
         'title[0][value]' => $nested1_title,
       ];
       $this->drupalPostForm(NULL, $edit, t('Save'));
-      $nested1_node = $this->drupalGetNodeByTitle($nested1_title);
-      $this->assertEqual($nested1_title, $nested1_node->label(), "First node's title looks correct.");
-      $this->assertEqual('ief_test_nested1', $nested1_node->bundle(), "First node's type looks correct.");
-      if ($this->assertNotNull($nested1_node->test_ref_nested1->entity, 'Second node was created.')) {
-        $this->assertEqual($nested2_title, $nested1_node->test_ref_nested1->entity->label(), "Second node's title looks correct.");
-        $this->assertEqual('ief_test_nested2', $nested1_node->test_ref_nested1->entity->bundle(), "Second node's type looks correct.");
-        if ($this->assertNotNull($nested1_node->test_ref_nested1->entity->test_ref_nested2->entity, 'Third node was created')) {
-          $this->assertEqual($nested3_title, $nested1_node->test_ref_nested1->entity->test_ref_nested2->entity->label(), "Third node's title looks correct.");
-          $this->assertEqual('ief_test_nested3', $nested1_node->test_ref_nested1->entity->test_ref_nested2->entity->bundle(), "Third node's type looks correct.");
-
-          $this->checkNestedEntityEditing($nested1_node, TRUE);
-        }
-      }
+      $this->checkNestedNodes($nested1_title, $nested2_title, $nested3_title);
     }
   }
 
@@ -289,14 +277,7 @@ class ComplexWidgetWebTest extends InlineEntityFormTestBase {
         'test_ref_nested1[form][inline_entity_form][test_ref_nested2][form][inline_entity_form][title][0][value]' => $nested3_title,
       ];
       $this->drupalPostForm(NULL, $edit, t('Save'));
-      $nested1_node = $this->drupalGetNodeByTitle($nested1_title);
-      $this->assertEqual($nested1_title, $nested1_node->label(), "First node's title looks correct.");
-      $this->assertEqual('ief_test_nested1', $nested1_node->bundle(), "First node's type looks correct.");
-      $this->assertEqual($nested2_title, $nested1_node->test_ref_nested1->entity->label(), "Second node's title looks correct.");
-      $this->assertEqual('ief_test_nested2', $nested1_node->test_ref_nested1->entity->bundle(), "Second node's type looks correct.");
-      $this->assertEqual($nested3_title, $nested1_node->test_ref_nested1->entity->test_ref_nested2->entity->label(), "Third node's title looks correct.");
-      $this->assertEqual('ief_test_nested3', $nested1_node->test_ref_nested1->entity->test_ref_nested2->entity->bundle(), "Third node's type looks correct.");
-      $this->checkNestedEntityEditing($nested1_node, FALSE);
+      $this->checkNestedNodes($nested1_title, $nested2_title, $nested3_title);
     }
   }
 
@@ -736,6 +717,34 @@ class ComplexWidgetWebTest extends InlineEntityFormTestBase {
     $this->assertOption('edit-all-bundles-actions-bundle', 'ief_reference_type');
     $this->assertOption('edit-all-bundles-actions-bundle', 'ief_test_complex');
     $this->assertFieldByName('multi[form][inline_entity_form][title][0][value]');
+  }
+
+  /**
+   * Checks if nested nodes for ief_test_nested1 content were created correctly.
+   *
+   * @param $nested1_title
+   *   Expected title of top level node of the type ief_test_nested1
+   * @param $nested2_title
+   *   Expected title of second level node
+   * @param $nested3_title
+   *   Expected title of third level node
+   */
+  protected function checkNestedNodes($nested1_title, $nested2_title, $nested3_title) {
+    $nested1_node = $this->drupalGetNodeByTitle($nested1_title);
+    $this->assertEqual($nested1_title, $nested1_node->label(), "First node's title looks correct.");
+    $this->assertEqual('ief_test_nested1', $nested1_node->bundle(), "First node's type looks correct.");
+    if ($this->assertNotNull($nested1_node->test_ref_nested1->entity, 'Second node was created.')) {
+      $this->assertEqual($nested1_node->test_ref_nested1->count(), 1, 'Only 1 node created at first level.');
+      $this->assertEqual($nested2_title, $nested1_node->test_ref_nested1->entity->label(), "Second node's title looks correct.");
+      $this->assertEqual('ief_test_nested2', $nested1_node->test_ref_nested1->entity->bundle(), "Second node's type looks correct.");
+      if ($this->assertNotNull($nested1_node->test_ref_nested1->entity->test_ref_nested2->entity, 'Third node was created')) {
+        $this->assertEqual($nested1_node->test_ref_nested1->entity->test_ref_nested2->count(), 1, 'Only 1 node created at second level.');
+        $this->assertEqual($nested3_title, $nested1_node->test_ref_nested1->entity->test_ref_nested2->entity->label(), "Third node's title looks correct.");
+        $this->assertEqual('ief_test_nested3', $nested1_node->test_ref_nested1->entity->test_ref_nested2->entity->bundle(), "Third node's type looks correct.");
+
+        $this->checkNestedEntityEditing($nested1_node, TRUE);
+      }
+    }
   }
 
 }
