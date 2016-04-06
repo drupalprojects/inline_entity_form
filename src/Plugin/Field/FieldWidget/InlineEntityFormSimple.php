@@ -35,15 +35,13 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
     $form_state->set(['inline_entity_form', $ief_id], []);
 
     $element['#type'] = 'fieldset';
-    $entity = NULL;
-    if ($items->get($delta)->target_id) {
-      $entity = $items->get($delta)->entity;
-      if (!$entity) {
-        $element['warning']['#markup'] = $this->t('Unable to load the referenced entity.');
-        return $element;
-      }
+    $item = $items->get($delta);
+    if ($item->target_id && !$item->entity) {
+      $element['warning']['#markup'] = $this->t('Unable to load the referenced entity.');
+      return $element;
     }
-    $op = isset($entity) ? 'edit' : 'add';
+    $entity = $item->entity;
+    $op = $entity ? 'edit' : 'add';
     $language = $items->getParent()->getValue()->language()->getId();
     $parents = array_merge($element['#field_parents'], [
       $items->getName(),

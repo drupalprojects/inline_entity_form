@@ -24,11 +24,27 @@ abstract class InlineEntityFormTestBase extends WebTestBase {
   protected $nodeStorage;
 
   /**
+   * Field config storage.
+   *
+   * @var \Drupal\Core\Config\Entity\ConfigEntityStorage
+   */
+  protected $fieldStorageConfigStorage;
+
+  /**
+   * Field config storage.
+   *
+   * @var \Drupal\Core\Config\Entity\ConfigEntityStorageInterface
+   */
+  protected $fieldConfigStorage;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp() {
     parent::setUp();
     $this->nodeStorage = $this->container->get('entity_type.manager')->getStorage('node');
+    $this->fieldStorageConfigStorage = $this->container->get('entity_type.manager')->getStorage('field_storage_config');
+    $this->fieldConfigStorage = $this->container->get('entity_type.manager')->getStorage('field_config');
   }
 
 

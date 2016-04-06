@@ -20,13 +20,6 @@ class SimpleWidgetWebTest extends InlineEntityFormTestBase {
   public static $modules = ['inline_entity_form_test'];
 
   /**
-   * Field config storage.
-   *
-   * @var \Drupal\Core\Config\Entity\ConfigEntityStorage
-   */
-  protected $fieldStorageConfigStorage;
-
-  /**
    * Prepares environment for
    */
   protected function setUp() {
@@ -39,10 +32,6 @@ class SimpleWidgetWebTest extends InlineEntityFormTestBase {
       'edit own ief_test_custom content',
       'view own unpublished content',
     ]);
-
-    $this->fieldStorageConfigStorage = $this->container
-      ->get('entity_type.manager')
-      ->getStorage('field_storage_config');
   }
 
   /**

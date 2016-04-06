@@ -37,13 +37,6 @@ class ComplexWidgetWebTest extends InlineEntityFormTestBase {
   protected $entityFormDisplayStorage;
 
   /**
-   * Field config storage.
-   *
-   * @var \Drupal\Core\Config\Entity\ConfigEntityStorageInterface
-   */
-  protected $fieldConfigStorage;
-
-  /**
    * Prepares environment for
    */
   protected function setUp() {
@@ -66,7 +59,6 @@ class ComplexWidgetWebTest extends InlineEntityFormTestBase {
 
     $this->formContentAddUrl = 'node/add/ief_test_complex';
     $this->entityFormDisplayStorage = $this->container->get('entity_type.manager')->getStorage('entity_form_display');
-    $this->fieldConfigStorage = $this->container->get('entity_type.manager')->getStorage('field_config');
   }
 
   /**
@@ -200,14 +192,14 @@ class ComplexWidgetWebTest extends InlineEntityFormTestBase {
       ];
       $this->drupalPostAjaxForm(NULL, $edit, $this->getButtonName('//input[@type="submit" and @value="Create node 3"]'));
       $this->assertText($nested3_title, 'Title of second nested node found.');
-      $this->assertFalse($this->drupalGetNodeByTitle($nested3_title), 'Second nested entity is not saved yet.');
+      $this->assertNoNodeByTitle($nested3_title, 'Second nested entity is not saved yet.');
 
       $edit = [
         'test_ref_nested1[form][inline_entity_form][title][0][value]' => $nested2_title,
       ];
       $this->drupalPostAjaxForm(NULL, $edit, $this->getButtonName('//input[@type="submit" and @value="Create node 2"]'));
       $this->assertText($nested2_title, 'Title of first nested node found.');
-      $this->assertFalse($this->drupalGetNodeByTitle($nested2_title), 'First nested entity is not saved yet.');
+      $this->assertNoNodeByTitle($nested2_title, 'First nested entity is not saved yet.');
 
       $edit = [
         'title[0][value]' => $nested1_title,
