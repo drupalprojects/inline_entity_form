@@ -555,8 +555,8 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
       if (empty($values['entities']) && !empty($values['form'])) {
         // @todo Do the same for reference forms.
         if ($values['form'] == 'add') {
-          $add_form_parents = array_merge($parents, ['inline_entity_form']);
-          $entity = $form_state->getValue($add_form_parents);
+          $element = NestedArray::getValue($form, [$field_name, 'widget', 'form']);
+          $entity = $element['inline_entity_form']['#entity'];
           $values['entities'][] = ['entity' => $entity];
         }
       }

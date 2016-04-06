@@ -12,6 +12,19 @@ use Drupal\inline_entity_form\ElementSubmit;
 /**
  * Provides an inline entity form element.
  *
+ * Usage example:
+ * @code
+ * $form['article'] = [
+ *   '#type' => 'inline_entity_form',
+ *   '#entity_type' => 'node',
+ *   '#bundle' => 'article',
+ *   '#default_value' => $loaded_article,
+ * ];
+ * @endcode
+ * To access the entity in validation or submission callbacks, use
+ * $form['article']['#entity']. Due to Drupal core limitations the entity
+ * can't be accessed via $form_state->getValue('article').
+ *
  * @RenderElement("inline_entity_form")
  */
 class InlineEntityForm extends RenderElement {
@@ -119,7 +132,6 @@ class InlineEntityForm extends RenderElement {
   public static function validateEntityForm(&$entity_form, FormStateInterface $form_state) {
     $inline_form_handler = static::getInlineFormHandler($entity_form['#entity_type']);
     $inline_form_handler->entityFormValidate($entity_form, $form_state);
-    $form_state->setValueForElement($entity_form, $entity_form['#entity']);
   }
 
   /**
