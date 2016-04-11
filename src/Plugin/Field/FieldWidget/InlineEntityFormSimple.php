@@ -30,7 +30,9 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
   public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state) {
     // Trick inline_entity_form_form_alter() into attaching the handlers,
     // WidgetSubmit will be needed once extractFormValues fills the $form_state.
-    $form_state->set('inline_entity_form', []);
+    $parents = array_merge($element['#field_parents'], [$items->getName()]);
+    $ief_id = sha1(implode('-', $parents));
+    $form_state->set(['inline_entity_form', $ief_id], []);
 
     $element['#type'] = 'fieldset';
     $entity = NULL;
