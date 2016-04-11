@@ -759,6 +759,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
         'callback' => 'inline_entity_form_get_element',
         'wrapper' => 'inline-entity-form-' . $form['#ief_id'],
       ],
+      '#allow_existing' => $this->getSetting('allow_existing'),
       '#submit' => [[get_class($this), 'submitConfirmRemove']],
       '#ief_row_delta' => $form['#ief_row_delta'],
     ];
@@ -811,7 +812,8 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
    */
   public static function submitConfirmRemove($form, FormStateInterface $form_state) {
     $element = inline_entity_form_get_element($form, $form_state);
-    $delta = $form_state->getTriggeringElement()['#ief_row_delta'];
+    $remove_button = $form_state->getTriggeringElement();
+    $delta = $remove_button['#ief_row_delta'];
 
     /** @var \Drupal\Core\Field\FieldDefinitionInterface $instance */
     $instance = $form_state->get(['inline_entity_form', $element['#ief_id'], 'instance']);
@@ -820,17 +822,12 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     $entity = $element['entities'][$delta]['form']['#entity'];
     $entity_id = $entity->id();
 
-    $widget = \Drupal::entityTypeManager()
-      ->getStorage('entity_form_display')
-      ->load($instance->getTargetEntityTypeId() . '.' . $instance->getTargetBundle() . '.default')
-      ->getComponent($instance->getName());
-
     $form_values = NestedArray::getValue($form_state->getValues(), $element['entities'][$delta]['form']['#parents']);
     $form_state->setRebuild();
 
     $widget_state = $form_state->get(['inline_entity_form', $element['#ief_id']]);
     // This entity hasn't been saved yet, we can just unlink it.
-    if (empty($entity_id) || ($widget['settings']['allow_existing'] && empty($form_values['delete']))) {
+    if (empty($entity_id) || ($remove_button['#allow_existing'] && empty($form_values['delete']))) {
       unset($widget_state['entities'][$delta]);
     }
     else {
