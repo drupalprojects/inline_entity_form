@@ -416,6 +416,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
               $bundles[$bundle_name] = $bundle_info['label'];
             }
           }
+          asort($bundles);
 
           $element['actions']['bundle'] = array(
             '#type' => 'select',
