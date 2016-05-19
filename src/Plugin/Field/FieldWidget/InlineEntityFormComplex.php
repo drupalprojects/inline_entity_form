@@ -12,6 +12,7 @@ use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Render\Element;
+use Drupal\inline_entity_form\TranslationHelper;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -202,11 +203,16 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
       '#suffix' => '</div>',
       '#ief_id' => $this->getIefId(),
       '#ief_root' => TRUE,
+      '#translating' => $this->isTranslating($form_state),
+      '#field_title' => $this->fieldDefinition->getLabel(),
+      '#after_build' => [
+        [get_class($this), 'removeTranslatabilityCue'],
+      ],
     ] + $element;
 
     $element['#attached']['library'][] = 'inline_entity_form/widget';
 
-    $this->prepareFormState($form_state, $items);
+    $this->prepareFormState($form_state, $items, $element['#translating']);
     $entities = $form_state->get(['inline_entity_form', $this->getIefId(), 'entities']);
 
     // Build the "Multiple value" widget.
@@ -225,9 +231,6 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
 
     // Get the fields that should be displayed in the table.
     $target_bundles = $this->getTargetBundles();
-    $create_bundles = $this->getCreateBundles();
-    $create_bundles_count = count($create_bundles);
-    $allow_new = $settings['allow_new'] && !empty($create_bundles);
     $fields = $this->inlineFormHandler->getTableFields($target_bundles);
     $context = [
       'parent_entity_type' => $this->fieldDefinition->getTargetEntityTypeId(),
@@ -346,9 +349,20 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
             '#submit' => ['inline_entity_form_open_row_form'],
             '#ief_row_delta' => $key,
             '#ief_row_form' => 'remove',
+            '#access' => !$element['#translating'],
           ];
         }
       }
+    }
+
+    // When in translation, the widget only supports editing (translating)
+    // already added entities, so there's no need to show the rest.
+    if ($element['#translating']) {
+      if (empty($entities)) {
+        // There are no entities available for translation, hide the widget.
+        $element['#access'] = FALSE;
+      }
+      return $element;
     }
 
     $entities_count = count($entities);
@@ -369,8 +383,10 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
       return $element;
     }
 
+    $create_bundles = $this->getCreateBundles();
+    $create_bundles_count = count($create_bundles);
+    $allow_new = $settings['allow_new'] && !empty($create_bundles);
     $hide_cancel = FALSE;
-
     // If the field is required and empty try to open one of the forms.
     if (empty($entities) && $this->fieldDefinition->isRequired()) {
       if ($settings['allow_existing'] && !$allow_new) {
@@ -534,19 +550,26 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     $parents = array_merge($form['#parents'], [$field_name, 'form']);
     $ief_id = sha1(implode('-', $parents));
     $this->setIefId($ief_id);
-    $widget_state = $form_state->get(['inline_entity_form', $ief_id]);
-    // If the inline entity form is still open, then its entity hasn't
-    // been transferred to the IEF form state yet.
-    if (empty($widget_state['entities']) && !empty($widget_state['form'])) {
-      // @todo Do the same for reference forms.
-      if ($widget_state['form'] == 'add') {
-        $element = NestedArray::getValue($form, [$field_name, 'widget', 'form']);
-        $entity = $element['inline_entity_form']['#entity'];
-        $widget_state['entities'][] = ['entity' => $entity];
+    $widget_state = &$form_state->get(['inline_entity_form', $ief_id]);
+    foreach ($widget_state['entities'] as $key => $value) {
+      $changed = TranslationHelper::updateEntityLangcode($value['entity'], $form_state);
+      if ($changed) {
+        $widget_state['entities'][$key]['entity'] = $value['entity'];
+        $widget_state['entities'][$key]['needs_save'] = TRUE;
       }
     }
 
     $values = $widget_state['entities'];
+    // If the inline entity form is still open, then its entity hasn't
+    // been transferred to the IEF form state yet.
+    if (empty($values) && !empty($widget_state['form'])) {
+      // @todo Do the same for reference forms.
+      if ($widget_state['form'] == 'add') {
+        $element = NestedArray::getValue($form, [$field_name, 'widget', 'form']);
+        $entity = $element['inline_entity_form']['#entity'];
+        $values[] = ['entity' => $entity];
+      }
+    }
     // Sort values by weight.
     uasort($values, '\Drupal\Component\Utility\SortArray::sortByWeightElement');
     // Let the widget massage the submitted values.

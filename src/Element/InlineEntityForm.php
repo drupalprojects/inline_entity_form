@@ -7,6 +7,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Render\Element\RenderElement;
 use Drupal\inline_entity_form\ElementSubmit;
+use Drupal\inline_entity_form\TranslationHelper;
 
 /**
  * Provides an inline entity form element.
@@ -118,6 +119,9 @@ class InlineEntityForm extends RenderElement {
     if (!isset($entity_form['#op'])) {
       $entity_form['#op'] = $entity_form['#entity']->isNew() ? 'add' : 'edit';
     }
+    // Prepare the entity form and the entity itself for translating.
+    $entity_form['#entity'] = TranslationHelper::prepareEntity($entity_form['#entity'], $form_state);
+    $entity_form['#translating'] = TranslationHelper::isTranslating($form_state) && $entity_form['#entity']->isTranslatable();
 
     $inline_form_handler = static::getInlineFormHandler($entity_form['#entity_type']);
     $entity_form = $inline_form_handler->entityForm($entity_form, $form_state);

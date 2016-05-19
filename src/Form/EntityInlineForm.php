@@ -149,6 +149,19 @@ class EntityInlineForm implements InlineFormInterface {
     $form_display = $this->getFormDisplay($entity, $entity_form['#form_mode']);
     $form_display->buildForm($entity, $entity_form, $form_state);
     $entity_form['#ief_element_submit'][] = [get_class($this), 'submitCleanFormState'];
+    // Inline entities inherit the parent language.
+    $langcode_key = $this->entityType->getKey('langcode');
+    if ($langcode_key && isset($entity_form[$langcode_key])) {
+      $entity_form[$langcode_key]['#access'] = FALSE;
+    }
+    if (!empty($entity_form['#translating'])) {
+      // Hide the non-translatable fields.
+      foreach ($entity->getFieldDefinitions() as $field_name => $definition) {
+        if (isset($entity_form[$field_name]) && $field_name != $langcode_key) {
+          $entity_form[$field_name]['#access'] = $definition->isTranslatable();
+        }
+      }
+    }
     // Allow other modules to alter the form.
     $this->moduleHandler->alter('inline_entity_form_entity_form', $entity_form, $form_state);
 

@@ -2,6 +2,7 @@
 
 namespace Drupal\inline_entity_form\Plugin\Field\FieldWidget;
 
+use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
@@ -11,6 +12,7 @@ use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\inline_entity_form\TranslationHelper;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -314,8 +316,10 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    *   The form state.
    * @param \Drupal\Core\Field\FieldItemListInterface $items
    *   The field values.
+   * @param bool $translating
+   *   Whether there's a translation in progress.
    */
-  protected function prepareFormState(FormStateInterface $form_state, FieldItemListInterface $items) {
+  protected function prepareFormState(FormStateInterface $form_state, FieldItemListInterface $items, $translating = FALSE) {
     $widget_state = $form_state->get(['inline_entity_form', $this->iefId]);
     if (empty($widget_state)) {
       $widget_state = [
@@ -324,11 +328,15 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
         'delete' => [],
         'entities' => [],
       ];
-      // Store the $items entities in the widget state, for futher manipulation.
+      // Store the $items entities in the widget state, for further manipulation.
       foreach ($items as $delta => $item) {
         $entity = $item->entity;
         // The $entity can be NULL if the reference is broken.
         if ($entity) {
+          // Display the entity in the correct translation.
+          if ($translating) {
+            $entity = TranslationHelper::prepareEntity($entity, $form_state);
+          }
           $widget_state['entities'][$delta] = [
             'entity' => $entity,
             'weight' => $delta,
@@ -380,6 +388,50 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       '#ief_id' => $this->getIefId(),
     ];
 
+    return $element;
+  }
+
+  /**
+   * Determines whether there's a translation in progress.
+   *
+   * Ensures that at least one target bundle has translations enabled.
+   * Otherwise the widget will skip translation even if it's happening
+   * on the parent form itself.
+   *
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   *
+   * @return bool
+   *   TRUE if translating is in progress, FALSE otherwise.
+   *
+   * @see \Drupal\inline_entity_form\TranslationHelper::initFormLangcodes().
+   */
+  protected function isTranslating(FormStateInterface $form_state) {
+    if (TranslationHelper::isTranslating($form_state)) {
+      $translation_manager = \Drupal::service('content_translation.manager');
+      $target_type = $this->getFieldSetting('target_type');
+      foreach ($this->getTargetBundles() as $bundle) {
+        if ($translation_manager->isEnabled($target_type, $bundle)) {
+          return TRUE;
+        }
+      }
+    }
+
+    return FALSE;
+  }
+
+  /**
+   * After-build callback for removing the translatability cue from the widget.
+   *
+   * IEF expects the entity reference field to not be translatable, to avoid
+   * different translations having different references.
+   * However, that causes ContentTranslationHandler::addTranslatabilityClue()
+   * to add an "(all languages)" suffix to the widget title. That suffix is
+   * incorrect, since IEF does ensure that specific entity translations are
+   * being edited.
+   */
+  public static function removeTranslatabilityCue(array $element, FormStateInterface $form_state) {
+    $element['#title'] = $element['#field_title'];
     return $element;
   }
 

@@ -9,6 +9,7 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\inline_entity_form\TranslationHelper;
 
 /**
  * Simple inline widget.
@@ -34,7 +35,13 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
     $ief_id = sha1(implode('-', $parents));
     $form_state->set(['inline_entity_form', $ief_id], []);
 
-    $element['#type'] = 'fieldset';
+    $element = [
+      '#type' => 'fieldset',
+      '#field_title' => $this->fieldDefinition->getLabel(),
+      '#after_build' => [
+        [get_class($this), 'removeTranslatabilityCue'],
+      ],
+    ] + $element;
     $item = $items->get($delta);
     if ($item->target_id && !$item->entity) {
       $element['warning']['#markup'] = $this->t('Unable to load the referenced entity.');
@@ -148,6 +155,7 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
       'entities' => [],
     ];
     foreach ($items as $delta => $value) {
+      TranslationHelper::updateEntityLangcode($value->entity, $form_state);
       $widget_state['entities'][$delta] = [
         'entity' => $value->entity,
         'needs_save' => TRUE,
