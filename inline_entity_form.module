@@ -176,7 +176,7 @@ function inline_entity_form_reference_form_submit($reference_form, FormStateInte
 
   $entities[] = [
     'entity' => $entity,
-    '_weight' => $weight,
+    'weight' => $weight,
     'form' => NULL,
     'needs_save' => FALSE,
   ];

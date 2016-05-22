@@ -312,7 +312,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    *
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
-   * @param Drupal\Core\Field\FieldItemListInterface $items
+   * @param \Drupal\Core\Field\FieldItemListInterface $items
    *   The field values.
    */
   protected function prepareFormState(FormStateInterface $form_state, FieldItemListInterface $items) {
@@ -331,7 +331,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
         if ($entity) {
           $widget_state['entities'][$delta] = [
             'entity' => $entity,
-            '_weight' => $delta,
+            'weight' => $delta,
             'form' => NULL,
             'needs_save' => $entity->isNew(),
           ];
@@ -420,7 +420,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       // Add the entity to form state, mark it for saving, and close the form.
       $entities[] = [
         'entity' => $entity,
-        '_weight' => $weight,
+        'weight' => $weight,
         'form' => NULL,
         'needs_save' => TRUE,
       ];

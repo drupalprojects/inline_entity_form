@@ -3,14 +3,12 @@
 namespace Drupal\inline_entity_form\Plugin\Field\FieldWidget;
 
 use Drupal\Component\Utility\NestedArray;
-use Drupal\Component\Utility\SortArray;
 use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
-use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Render\Element;
@@ -251,14 +249,14 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
       $element['entities'][$key]['#needs_save'] = $value['needs_save'];
 
       // Handle row weights.
-      $element['entities'][$key]['#weight'] = $value['_weight'];
+      $element['entities'][$key]['#weight'] = $value['weight'];
 
       // First check to see if this entity should be displayed as a form.
       if (!empty($value['form'])) {
         $element['entities'][$key]['title'] = [];
         $element['entities'][$key]['delta'] = [
           '#type' => 'value',
-          '#value' => $value['_weight'],
+          '#value' => $value['weight'],
         ];
 
         // Add the appropriate form.
@@ -305,7 +303,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
         $row['delta'] = [
           '#type' => 'weight',
           '#delta' => $weight_delta,
-          '#default_value' => $value['_weight'],
+          '#default_value' => $value['weight'],
           '#attributes' => ['class' => ['ief-entity-delta']],
         ];
         // Add an actions container with edit and delete buttons for the entity.
@@ -527,9 +525,8 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
       $items->filterEmptyItems();
       return;
     }
-
-    $trigger = $form_state->getTriggeringElement();
-    if (empty($trigger['#ief_submit_trigger'])) {
+    $triggering_element = $form_state->getTriggeringElement();
+    if (empty($triggering_element['#ief_submit_trigger'])) {
       return;
     }
 
@@ -537,89 +534,26 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     $parents = array_merge($form['#parents'], [$field_name, 'form']);
     $ief_id = sha1(implode('-', $parents));
     $this->setIefId($ief_id);
-
-    $inline_entity_form_state = $form_state->get('inline_entity_form');
-    if (isset($inline_entity_form_state[$this->getIefId()])) {
-      $values = $inline_entity_form_state[$this->getIefId()];
-      $key_exists = TRUE;
-    }
-    else {
-      $values = [];
-      $key_exists = FALSE;
-    }
-
-    if ($key_exists) {
-      // If the inline entity form is still open, then its entity hasn't
-      // been transfered to the IEF form state yet.
-      if (empty($values['entities']) && !empty($values['form'])) {
-        // @todo Do the same for reference forms.
-        if ($values['form'] == 'add') {
-          $element = NestedArray::getValue($form, [$field_name, 'widget', 'form']);
-          $entity = $element['inline_entity_form']['#entity'];
-          $values['entities'][] = ['entity' => $entity];
-        }
-      }
-
-      $values = $values['entities'];
-      // Account for drag-and-drop reordering if needed.
-      if (!$this->handlesMultipleValues()) {
-        // Remove the 'value' of the 'add more' button.
-        unset($values['add_more']);
-
-        // The original delta, before drag-and-drop reordering, is needed to
-        // route errors to the corect form element.
-        foreach ($values as $delta => &$value) {
-          $value['_original_delta'] = $delta;
-        }
-
-        usort($values, function ($a, $b) {
-          return SortArray::sortByKeyInt($a, $b, '_weight');
-        });
-      }
-
-      // Let the widget massage the submitted values.
-      $values = $this->massageFormValues($values, $form, $form_state);
-
-      // Assign the values and remove the empty ones.
-      $items->setValue($values);
-      $items->filterEmptyItems();
-
-      // Put delta mapping in $form_state, so that flagErrors() can use it.
-      $field_state = WidgetBase::getWidgetState($form['#parents'], $field_name, $form_state);
-      foreach ($items as $delta => $item) {
-        $field_state['original_deltas'][$delta] = isset($item->_original_delta) ? $item->_original_delta : $delta;
-        unset($item->_original_delta, $item->_weight);
-      }
-
-      WidgetBase::setWidgetState($form['#parents'], $field_name, $form_state, $field_state);
-    }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function massageFormValues(array $values, array $form, FormStateInterface $form_state) {
-    $items = [];
-
-    // Convert form values to actual entity reference values.
-    foreach ($values as $value) {
-      $item = $value;
-      if (isset($item['entity'])) {
-        $item['target_id'] = $item['entity']->id();
-        $items[] = $item;
-      }
-      else {
-        $item['target_id'] = NULL;
-        $items[] = $item;
+    $widget_state = $form_state->get(['inline_entity_form', $ief_id]);
+    // If the inline entity form is still open, then its entity hasn't
+    // been transferred to the IEF form state yet.
+    if (empty($widget_state['entities']) && !empty($widget_state['form'])) {
+      // @todo Do the same for reference forms.
+      if ($widget_state['form'] == 'add') {
+        $element = NestedArray::getValue($form, [$field_name, 'widget', 'form']);
+        $entity = $element['inline_entity_form']['#entity'];
+        $widget_state['entities'][] = ['entity' => $entity];
       }
     }
 
-    // Sort items by _weight.
-    usort($items, function ($a, $b) {
-      return SortArray::sortByKeyInt($a, $b, '_weight');
-    });
-
-    return $items;
+    $values = $widget_state['entities'];
+    // Sort values by weight.
+    uasort($values, '\Drupal\Component\Utility\SortArray::sortByWeightElement');
+    // Let the widget massage the submitted values.
+    $values = $this->massageFormValues($values, $form, $form_state);
+    // Assign the values and remove the empty ones.
+    $items->setValue($values);
+    $items->filterEmptyItems();
   }
 
   /**
@@ -870,7 +804,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     // Loop over the submitted delta values and update the weight of the entities
     // in the form state.
     foreach (Element::children($element['entities']) as $key) {
-      $form_state->set(['inline_entity_form', $ief_id, 'entities', $key, '_weight'], $element['entities'][$key]['delta']['#value']);
+      $form_state->set(['inline_entity_form', $ief_id, 'entities', $key, 'weight'], $element['entities'][$key]['delta']['#value']);
     }
   }
 

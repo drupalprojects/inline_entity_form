@@ -160,9 +160,8 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
     $field_state = WidgetBase::getWidgetState($form['#parents'], $field_name, $form_state);
     foreach ($items as $delta => $item) {
       $field_state['original_deltas'][$delta] = isset($item->_original_delta) ? $item->_original_delta : $delta;
-      unset($item->_original_delta, $item->_weight);
+      unset($item->_original_delta, $item->weight);
     }
-
     WidgetBase::setWidgetState($form['#parents'], $field_name, $form_state, $field_state);
   }
 
