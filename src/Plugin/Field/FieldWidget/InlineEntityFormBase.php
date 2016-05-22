@@ -348,7 +348,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    *   The operation (i.e. 'add' or 'edit').
    * @param string $bundle
    *   Entity bundle.
-   * @param string $language
+   * @param string $langcode
    *   Entity langcode.
    * @param array $parents
    *   Array of parent element names.
@@ -358,12 +358,12 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    * @return array
    *   IEF form element structure.
    */
-  protected function getInlineEntityForm($operation, $bundle, $language, $delta, array $parents, EntityInterface $entity = NULL) {
+  protected function getInlineEntityForm($operation, $bundle, $langcode, $delta, array $parents, EntityInterface $entity = NULL) {
     $element = [
       '#type' => 'inline_entity_form',
       '#entity_type' => $this->getFieldSetting('target_type'),
       '#bundle' => $bundle,
-      '#language' => $language,
+      '#langcode' => $langcode,
       '#default_value' => $entity,
       '#op' => $operation,
       '#form_mode' => $this->getSetting('form_mode'),

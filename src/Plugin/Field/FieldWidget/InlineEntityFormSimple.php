@@ -42,14 +42,14 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
     }
     $entity = $item->entity;
     $op = $entity ? 'edit' : 'add';
-    $language = $items->getParent()->getValue()->language()->getId();
+    $langcode = $items->getEntity()->language()->getId();
     $parents = array_merge($element['#field_parents'], [
       $items->getName(),
       $delta,
       'inline_entity_form'
     ]);
     $bundle = reset($this->getFieldSetting('handler_settings')['target_bundles']);
-    $element['inline_entity_form'] = $this->getInlineEntityForm($op, $bundle, $language, $delta, $parents, $entity);
+    $element['inline_entity_form'] = $this->getInlineEntityForm($op, $bundle, $langcode, $delta, $parents, $entity);
 
     if ($op == 'edit') {
       /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */

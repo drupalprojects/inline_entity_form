@@ -4,7 +4,6 @@ namespace Drupal\inline_entity_form\Element;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Render\Element\RenderElement;
 use Drupal\inline_entity_form\ElementSubmit;
@@ -39,7 +38,7 @@ class InlineEntityForm extends RenderElement {
       '#ief_id' => '',
       '#entity_type' => NULL,
       '#bundle' => NULL,
-      '#language' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
+      '#langcode' => NULL,
       // Instance of \Drupal\Core\Entity\EntityInterface. If NULL, a new
       // entity will be created.
       '#default_value' => NULL,
@@ -105,9 +104,12 @@ class InlineEntityForm extends RenderElement {
       // This is an add operation, create a new entity.
       $entity_type = \Drupal::entityTypeManager()->getDefinition($entity_form['#entity_type']);
       $storage = \Drupal::entityTypeManager()->getStorage($entity_form['#entity_type']);
-      $values = [
-        'langcode' => $entity_form['#language'],
-      ];
+      $values = [];
+      if ($langcode_key = $entity_type->getKey('langcode')) {
+        if (!empty($entity_form['#langcode'])) {
+          $values[$langcode_key] = $entity_form['#langcode'];
+        }
+      }
       if ($bundle_key = $entity_type->getKey('bundle')) {
         $values[$bundle_key] = $entity_form['#bundle'];
       }

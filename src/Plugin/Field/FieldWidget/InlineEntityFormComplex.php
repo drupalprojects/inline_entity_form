@@ -191,7 +191,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     $this->setIefId(sha1(implode('-', $parents)));
 
     // Get the langcode of the parent entity.
-    $parent_langcode = $items->getParent()->getValue()->language()->getId();
+    $parent_langcode = $items->getEntity()->language()->getId();
 
     // Determine the wrapper ID for the entire element.
     $wrapper = 'inline-entity-form-' . $this->getIefId();
@@ -490,8 +490,6 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
           '#parents' => array_merge($parents),
           // Pass the current entity type.
           '#entity_type' => $target_type,
-          // Pass the langcode of the parent entity,
-          '#parent_language' => $parent_langcode,
           // Pass the widget specific labels.
           '#ief_labels' => $this->getEntityTypeLabels(),
         ];
