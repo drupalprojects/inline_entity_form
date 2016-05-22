@@ -250,7 +250,7 @@ class EntityInlineForm implements InlineFormInterface {
         $parents = $entity_form[$field_name]['#parents'];
         array_pop($parents);
         if (!empty($parents)) {
-          $field_state = array();
+          $field_state = [];
           WidgetBase::setWidgetState($parents, $field_name, $form_state, $field_state);
         }
       }

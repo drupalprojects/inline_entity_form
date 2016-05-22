@@ -199,15 +199,15 @@ function inline_entity_form_open_form($form, FormStateInterface $form_state) {
   $form_state->setRebuild();
 
   // Get the current form values.
-  $parents = array_merge($element['#field_parents'], array($element['#field_name']));
+  $parents = array_merge($element['#field_parents'], [$element['#field_name']]);
   $form_values = NestedArray::getValue($form_state->getUserInput(), $parents);
 
   $triggering_element = $form_state->getTriggeringElement();
   $form_state->set(['inline_entity_form', $ief_id, 'form'], $triggering_element['#ief_form']);
   if (!empty($form_values['actions']['bundle'])) {
-    $form_state->set(['inline_entity_form', $ief_id, 'form settings'], array(
+    $form_state->set(['inline_entity_form', $ief_id, 'form settings'], [
       'bundle' => $form_values['actions']['bundle'],
-    ));
+    ]);
   }
 }
 
@@ -295,7 +295,7 @@ function inline_entity_form_cleanup_row_form_state($form, FormStateInterface $fo
  * Returns an IEF widget nearest to the triggering element.
  */
 function inline_entity_form_get_element($form, FormStateInterface $form_state) {
-  $element = array();
+  $element = [];
   $triggering_element = $form_state->getTriggeringElement();
 
   // Remove the action and the actions container.
