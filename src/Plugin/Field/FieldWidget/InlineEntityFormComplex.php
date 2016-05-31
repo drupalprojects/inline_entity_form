@@ -846,7 +846,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     if (!$has_children && !$form_open) {
       /** @var \Drupal\Core\Field\FieldDefinitionInterface $instance */
       $instance = $form_state->get(['inline_entity_form', $ief_id, 'instance']);
-      $form_state->setError($element, t('!name field is required.', ['!name' => $instance->getLabel()]));
+      $form_state->setError($element, t('@name field is required.', ['@name' => $instance->getLabel()]));
     }
   }
 
