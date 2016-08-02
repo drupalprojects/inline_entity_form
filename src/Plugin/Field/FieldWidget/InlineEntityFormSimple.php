@@ -39,7 +39,7 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
       '#type' => 'fieldset',
       '#field_title' => $this->fieldDefinition->getLabel(),
       '#after_build' => [
-        [get_class($this), 'removeTranslatabilityCue'],
+        [get_class($this), 'removeTranslatabilityClue'],
       ],
     ] + $element;
     $item = $items->get($delta);

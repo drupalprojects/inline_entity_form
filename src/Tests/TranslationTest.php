@@ -127,7 +127,7 @@ class TranslationTest extends InlineEntityFormTestBase {
     // Add a German -> French translation.
     $this->drupalGet('node/' . $node->id() . '/translations/add/de/fr');
 
-    // Confirm that the translatability cue has been removed.
+    // Confirm that the translatability clue has been removed.
     $widget_title_element = $this->xpath('//fieldset[@id="edit-multi"]/legend/span');
     $this->assertEqual((string) $widget_title_element[0], 'Multiple nodes', 'The widget has the expected title.');
     // Confirm that the add and remove buttons are not present.

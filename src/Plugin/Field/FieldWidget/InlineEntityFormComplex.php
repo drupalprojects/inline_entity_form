@@ -206,7 +206,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
       '#translating' => $this->isTranslating($form_state),
       '#field_title' => $this->fieldDefinition->getLabel(),
       '#after_build' => [
-        [get_class($this), 'removeTranslatabilityCue'],
+        [get_class($this), 'removeTranslatabilityClue'],
       ],
     ] + $element;
 

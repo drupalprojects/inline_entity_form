@@ -421,7 +421,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   }
 
   /**
-   * After-build callback for removing the translatability cue from the widget.
+   * After-build callback for removing the translatability clue from the widget.
    *
    * IEF expects the entity reference field to not be translatable, to avoid
    * different translations having different references.
@@ -430,7 +430,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    * incorrect, since IEF does ensure that specific entity translations are
    * being edited.
    */
-  public static function removeTranslatabilityCue(array $element, FormStateInterface $form_state) {
+  public static function removeTranslatabilityClue(array $element, FormStateInterface $form_state) {
     $element['#title'] = $element['#field_title'];
     return $element;
   }
