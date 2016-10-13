@@ -87,9 +87,6 @@ class InlineEntityForm extends RenderElement {
     if (empty($entity_form['#entity_type'])) {
       throw new \InvalidArgumentException('The inline_entity_form element requires the #entity_type property.');
     }
-    if (empty($entity_form['#bundle'])) {
-      throw new \InvalidArgumentException('The inline_entity_form element requires the #bundle property.');
-    }
     if (isset($entity_form['#default_value']) && !($entity_form['#default_value'] instanceof EntityInterface)) {
       throw new \InvalidArgumentException('The inline_entity_form #default_value property must be an entity object.');
     }

@@ -55,7 +55,7 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
       $delta,
       'inline_entity_form'
     ]);
-    $bundle = reset($this->getFieldSetting('handler_settings')['target_bundles']);
+    $bundle = !empty($this->getFieldSetting('handler_settings')['target_bundles']) ? reset($this->getFieldSetting('handler_settings')['target_bundles']) : NULL;
     $element['inline_entity_form'] = $this->getInlineEntityForm($op, $bundle, $langcode, $delta, $parents, $entity);
 
     if ($op == 'edit') {
@@ -177,15 +177,14 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
    * {@inheritdoc}
    */
   public static function isApplicable(FieldDefinitionInterface $field_definition) {
-    if (!$field_definition->isRequired()) {
-      return FALSE;
+    $handler_settings = $field_definition->getSettings()['handler_settings'];
+    $target_entity_type_id = $field_definition->getFieldStorageDefinition()->getSetting('target_type');
+    $target_entity_type = \Drupal::entityTypeManager()->getDefinition($target_entity_type_id);
+    // The target entity type doesn't use bundles, no need to validate them.
+    if (!$target_entity_type->getKey('bundle')) {
+      return TRUE;
     }
 
-    $handler_settings = $field_definition->getSettings()['handler_settings'];
-    // Entity types without bundles will throw notices on next condition so let's
-    // stop before they do. We should support this kind of entities too. See
-    // https://www.drupal.org/node/2569193 and remove this check once that issue
-    // lands.
     if (empty($handler_settings['target_bundles'])) {
       return FALSE;
     }
