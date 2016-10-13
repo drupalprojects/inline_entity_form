@@ -26,7 +26,7 @@ function inline_entity_form_entity_type_build(array &$entity_types) {
   }
 
   foreach ($entity_types as &$entity_type) {
-    if (!$entity_type->getHandlerClass('inline_form')) {
+    if (!$entity_type->hasHandlerClass('inline_form')) {
       $entity_type->setHandlerClass('inline_form', '\Drupal\inline_entity_form\Form\EntityInlineForm');
     }
   }
