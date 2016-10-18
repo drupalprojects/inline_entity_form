@@ -11,6 +11,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
 use Drupal\inline_entity_form\InlineFormInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -138,6 +139,25 @@ class EntityInlineForm implements InlineFormInterface {
     }
 
     return $fields;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function isTableDragEnabled($element) {
+    $children = Element::children($element);
+    // If there is only one row, disable tabledrag.
+    if (count($children) == 1) {
+      return FALSE;
+    }
+    // If one of the rows is in form context, disable tabledrag.
+    foreach ($children as $key) {
+      if (!empty($element[$key]['form'])) {
+        return FALSE;
+      }
+    }
+
+    return TRUE;
   }
 
   /**
