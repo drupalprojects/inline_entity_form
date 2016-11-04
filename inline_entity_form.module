@@ -76,7 +76,10 @@ function inline_entity_form_reference_form($reference_form, &$form_state) {
   $reference_form['#title'] = t('Add existing @type_singular', ['@type_singular' => $labels['singular']]);
   $reference_form['entity_id'] = [
     '#type' => 'entity_autocomplete',
-    '#title' => t('@label', ['@label' => ucwords($labels['singular'])]),
+    // @todo Use bundle defined singular/plural labels as soon as
+    //   https://www.drupal.org/node/2765065 is committed.
+    // @see https://www.drupal.org/node/2765065
+    '#title' => t('@label', ['@label' => ucfirst($labels['singular'])]),
     '#target_type' => $instance->getSetting('target_type'),
     '#selection_handler' => $instance->getSetting('handler'),
     '#selection_settings' => $instance->getSetting('handler_settings'),
