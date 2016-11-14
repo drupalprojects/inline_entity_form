@@ -194,6 +194,8 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       'override_labels' => FALSE,
       'label_singular' => '',
       'label_plural' => '',
+      'collapsible' => FALSE,
+      'collapsed' => FALSE,
     ];
   }
 
@@ -236,6 +238,21 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
         ],
       ],
     ];
+    $element['collapsible'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Collapsible'),
+      '#default_value' => $this->getSetting('collapsible'),
+    ];
+    $element['collapsed'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Collapsed by default'),
+      '#default_value' => $this->getSetting('collapsed'),
+      '#states' => [
+        'visible' => [
+          ':input[name="' . $states_prefix . '[collapsible]"]' => ['checked' => TRUE],
+        ],
+      ],
+    ];
 
     return $element;
   }
@@ -260,6 +277,10 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
     }
     else {
       $summary[] = $this->t('Default labels are used.');
+    }
+
+    if ($this->getSetting('collapsible')) {
+      $summary[] = $this->t($this->getSetting('collapsed') ? 'Collapsible, collapsed by default' : 'Collapsible');
     }
 
     return $summary;

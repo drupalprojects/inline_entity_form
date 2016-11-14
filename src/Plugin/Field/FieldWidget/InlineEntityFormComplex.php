@@ -196,7 +196,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     $wrapper = 'inline-entity-form-' . $this->getIefId();
 
     $element = [
-      '#type' => 'fieldset',
+      '#type' => $this->getSetting('collapsible') ? 'details' : 'fieldset',
       '#tree' => TRUE,
       '#description' => $this->fieldDefinition->getDescription(),
       '#prefix' => '<div id="' . $wrapper . '">',
@@ -209,6 +209,9 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
         [get_class($this), 'removeTranslatabilityClue'],
       ],
     ] + $element;
+    if ($element['#type'] == 'details') {
+      $element['#open'] = !$this->getSetting('collapsed');
+    }
 
     $element['#attached']['library'][] = 'inline_entity_form/widget';
 

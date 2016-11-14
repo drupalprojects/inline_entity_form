@@ -36,12 +36,16 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
     $form_state->set(['inline_entity_form', $ief_id], []);
 
     $element = [
-      '#type' => 'fieldset',
+      '#type' => $this->getSetting('collapsible') ? 'details' : 'fieldset',
       '#field_title' => $this->fieldDefinition->getLabel(),
       '#after_build' => [
         [get_class($this), 'removeTranslatabilityClue'],
       ],
     ] + $element;
+    if ($element['#type'] == 'details') {
+      $element['#open'] = !$this->getSetting('collapsed');
+    }
+
     $item = $items->get($delta);
     if ($item->target_id && !$item->entity) {
       $element['warning']['#markup'] = $this->t('Unable to load the referenced entity.');
