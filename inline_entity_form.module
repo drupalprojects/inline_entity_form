@@ -366,7 +366,6 @@ function theme_inline_entity_form_entity_table($variables) {
     }
 
     foreach ($fields as $field_name => $field) {
-      $data = '';
       if ($field['type'] == 'label') {
         $data = $variables['form'][$key]['#label'];
       }
@@ -387,6 +386,9 @@ function theme_inline_entity_form_entity_table($variables) {
         }
 
         $data = call_user_func_array($field['callback'], $arguments);
+      }
+      else {
+        $data = t('N/A');
       }
 
       $cells[] = ['data' => $data, 'class' => ['inline-entity-form-' . $entity_type . '-' . $field_name]];
