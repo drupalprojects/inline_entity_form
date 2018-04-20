@@ -59,7 +59,7 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
       $delta,
       'inline_entity_form'
     ]);
-    $bundle = !empty($this->getFieldSetting('handler_settings')['target_bundles']) ? reset($this->getFieldSetting('handler_settings')['target_bundles']) : NULL;
+    $bundle = $this->getBundle();
     $element['inline_entity_form'] = $this->getInlineEntityForm($op, $bundle, $langcode, $delta, $parents, $entity);
 
     if ($op == 'edit') {
@@ -198,6 +198,18 @@ class InlineEntityFormSimple extends InlineEntityFormBase {
     }
 
     return TRUE;
+  }
+
+  /**
+   * Gets the bundle for the inline entity.
+   *
+   * @return string|null
+   *   The bundle, or NULL if not known.
+   */
+  protected function getBundle() {
+    if (!empty($this->getFieldSetting('handler_settings')['target_bundles'])) {
+      return reset($this->getFieldSetting('handler_settings')['target_bundles']);
+    }
   }
 
 }
