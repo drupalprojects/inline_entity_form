@@ -50,6 +50,11 @@ class InlineEntityForm extends RenderElement {
       // 'add' or 'edit'. If NULL, determined by whether the entity is new.
       '#op' => NULL,
       '#process' => [
+        // Core's #process for groups, don't remove it.
+        [$class, 'processGroup'],
+
+        // InlineEntityForm's #process must run after the above ::processGroup
+        // in case any new elements (like groups) were added in alter hooks.
         [$class, 'processEntityForm'],
       ],
       '#element_validate' => [
@@ -59,9 +64,10 @@ class InlineEntityForm extends RenderElement {
         [$class, 'submitEntityForm'],
       ],
       '#theme_wrappers' => ['container'],
-      // Allow inline forms to use the #fieldset key.
+
       '#pre_render' => [
-        [$class, 'addFieldsetMarkup'],
+        // Core's #pre_render for groups, don't remove it.
+        [$class, 'preRenderGroup'],
       ],
     ];
   }
@@ -177,44 +183,6 @@ class InlineEntityForm extends RenderElement {
     }
 
     return $inline_form_handler;
-  }
-
-  /**
-   * Pre-render callback for the #fieldset form property.
-   *
-   * Inline forms use #tree = TRUE to keep their values in a hierarchy for
-   * easier storage. Moving the form elements into fieldsets during form
-   * building would break up that hierarchy, so it's not an option for entity
-   * fields. Therefore, we wait until the pre_render stage, where any changes
-   * we make affect presentation only and aren't reflected in $form_state.
-   *
-   * @param array $entity_form
-   *   The entity form.
-   *
-   * @return array
-   *   The modified entity form.
-   */
-  public static function addFieldsetMarkup($entity_form) {
-    $sort = [];
-    foreach (Element::children($entity_form) as $key) {
-      $element = $entity_form[$key];
-      if (isset($element['#fieldset']) && isset($entity_form[$element['#fieldset']])) {
-        $entity_form[$element['#fieldset']][$key] = $element;
-        // Remove the original element this duplicates.
-        unset($entity_form[$key]);
-        // Mark the fieldset for sorting.
-        if (!in_array($key, $sort)) {
-          $sort[] = $element['#fieldset'];
-        }
-      }
-    }
-
-    // Sort all fieldsets, so that element #weight stays respected.
-    foreach ($sort as $key) {
-      uasort($entity_form[$key], '\Drupal\Component\Utility\SortArray::sortByWeightProperty');
-    }
-
-    return $entity_form;
   }
 
 }
