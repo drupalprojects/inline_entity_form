@@ -2,7 +2,6 @@
 
 namespace Drupal\inline_entity_form\Plugin\Field\FieldWidget;
 
-use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
@@ -72,7 +71,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    *   The entity type bundle info.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
-   * @param \Drupal\Core\Entity\EntityDisplayRepositoryInterface
+   * @param \Drupal\Core\Entity\EntityDisplayRepositoryInterface $entity_display_repository
    *   The entity display repository.
    */
   public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, array $third_party_settings, EntityTypeBundleInfoInterface $entity_type_bundle_info, EntityTypeManagerInterface $entity_type_manager, EntityDisplayRepositoryInterface $entity_display_repository) {
@@ -312,7 +311,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    * - Is IEF handler loaded?
    * - Are we on a "real" entity form and not on default value widget?
    *
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   Form state.
    *
    * @return bool
@@ -425,7 +424,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    * @return bool
    *   TRUE if translating is in progress, FALSE otherwise.
    *
-   * @see \Drupal\inline_entity_form\TranslationHelper::initFormLangcodes().
+   * @see \Drupal\inline_entity_form\TranslationHelper::initFormLangcodes()
    */
   protected function isTranslating(FormStateInterface $form_state) {
     if (TranslationHelper::isTranslating($form_state)) {
@@ -474,8 +473,8 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    * still decide to cancel the parent form.
    *
    * @param $entity_form
-   *  The form of the entity being managed inline.
-   * @param $form_state
+   *   The form of the entity being managed inline.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state of the parent form.
    */
   public static function submitSaveEntity($entity_form, FormStateInterface $form_state) {

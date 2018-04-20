@@ -203,7 +203,7 @@ class EntityInlineForm implements InlineFormInterface {
       $form_display->validateFormValues($entity, $entity_form, $form_state);
       $entity->setValidationRequired(FALSE);
 
-      foreach($form_state->getErrors() as $name => $message) {
+      foreach ($form_state->getErrors() as $name => $message) {
         // $name may be unknown in $form_state and
         // $form_state->setErrorByName($name, $message) may suppress the error message.
         $form_state->setError($triggering_element, $message);

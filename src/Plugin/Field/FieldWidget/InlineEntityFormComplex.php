@@ -53,7 +53,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
    *   The entity type bundle info.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
-   * @param \Drupal\Core\Entity\EntityDisplayRepositoryInterface
+   * @param \Drupal\Core\Entity\EntityDisplayRepositoryInterface $entity_display_repository
    *   The entity display repository.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   Module handler service.
@@ -275,7 +275,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
               $entity->bundle(),
               $parent_langcode,
               $key,
-              array_merge($parents,  ['inline_entity_form', 'entities', $key, 'form']),
+              array_merge($parents, ['inline_entity_form', 'entities', $key, 'form']),
               $entity
             ),
           ];
@@ -402,7 +402,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
         // The parent entity type and bundle must not be the same as the inline
         // entity type and bundle, to prevent recursion.
         $parent_entity_type = $this->fieldDefinition->getTargetEntityTypeId();
-        $parent_bundle =  $this->fieldDefinition->getTargetBundle();
+        $parent_bundle = $this->fieldDefinition->getTargetBundle();
         if ($parent_entity_type != $target_type || $parent_bundle != $bundle) {
           $form_state->set(['inline_entity_form', $this->getIefId(), 'form'], 'add');
           $form_state->set(['inline_entity_form', $this->getIefId(), 'form settings'], [
@@ -744,7 +744,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
    * @param $form_state
    *   The form state of the parent form.
    *
-   * @see inline_entity_form_open_row_form().
+   * @see inline_entity_form_open_row_form()
    */
   public static function submitCloseRow($form, FormStateInterface $form_state) {
     $element = inline_entity_form_get_element($form, $form_state);
@@ -799,7 +799,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
   /**
    * Determines bundle to be used when creating entity.
    *
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   Current form state.
    *
    * @return string
@@ -861,7 +861,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
    * @param $form_state
    *   The form state of the parent form.
    *
-   * @see inline_entity_form_open_form().
+   * @see inline_entity_form_open_form()
    */
   public static function closeForm($form, FormStateInterface $form_state) {
     $element = inline_entity_form_get_element($form, $form_state);
@@ -892,7 +892,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
    *
    * @param $form
    *   The IEF Form element.
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state of the parent form.
    */
   public static function closeChildForms($form, FormStateInterface &$form_state) {

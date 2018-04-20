@@ -128,7 +128,7 @@ function inline_entity_form_reference_form($reference_form, &$form_state) {
  * Validates the form for adding existing entities.
  *
  * @param array $reference_form
- *  The reference entity form.
+ *   The reference entity form.
  * @param \Drupal\Core\Form\FormStateInterface $form_state
  *   The form state of the parent form.
  */
@@ -161,7 +161,7 @@ function inline_entity_form_reference_form_validate(&$reference_form, FormStateI
  * Adds the specified entity to the IEF form state.
  *
  * @param array $reference_form
- *  The reference entity form.
+ *   The reference entity form.
  * @param \Drupal\Core\Form\FormStateInterface $form_state
  *   The form state of the parent form.
  */
