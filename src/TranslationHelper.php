@@ -34,6 +34,9 @@ class TranslationHelper {
       // Create a translation from the source language values.
       $source = $form_state->get(['content_translation', 'source']);
       $source_langcode = $source ? $source->getId() : $entity_langcode;
+      if (!$entity->hasTranslation($source_langcode)) {
+        $entity->addTranslation($source_langcode, $entity->toArray());
+      }
       $source_translation = $entity->getTranslation($source_langcode);
       $entity->addTranslation($form_langcode, $source_translation->toArray());
       $translation = $entity->getTranslation($form_langcode);
