@@ -337,10 +337,10 @@ function theme_inline_entity_form_entity_table($variables) {
   // Add header columns for each field.
   $first = TRUE;
   foreach ($fields as $field_name => $field) {
-    $column = ['data' => $field['label']];
+    $column = ['data' => $field['label'], 'class' => ['inline-entity-form-' . $entity_type . '-' . $field_name]];
     // The first column gets a special class.
     if ($first) {
-      $column['class'] = ['ief-first-column-header'];
+      $column['class'][] = 'ief-first-column-header';
       $first = FALSE;
     }
     $header[] = $column;
