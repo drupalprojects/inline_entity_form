@@ -57,6 +57,9 @@ field.widget.settings.inline_entity_form_complex:
     match_operator:
       type: string
       label: "Match operator"
+    allow_duplicate:
+      type: boolean
+      label: "Allow duplicate"
     collapsible:
       type: boolean
       label: "Collapsible"

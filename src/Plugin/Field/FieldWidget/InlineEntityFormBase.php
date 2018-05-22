@@ -482,7 +482,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
     /** @var \Drupal\Core\Entity\EntityInterface $entity */
     $entity = $entity_form['#entity'];
 
-    if ($entity_form['#op'] == 'add') {
+    if (in_array($entity_form['#op'], ['add', 'duplicate'])) {
       // Determine the correct weight of the new element.
       $weight = 0;
       $entities = $form_state->get(['inline_entity_form', $ief_id, 'entities']);

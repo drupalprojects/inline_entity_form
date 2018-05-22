@@ -47,7 +47,7 @@ class InlineEntityForm extends RenderElement {
       '#form_mode' => 'default',
       // Will save entity on submit if set to TRUE.
       '#save_entity' => TRUE,
-      // 'add' or 'edit'. If NULL, determined by whether the entity is new.
+      // 'add', 'edit' or 'duplicate'.
       '#op' => NULL,
       '#process' => [
         // Core's #process for groups, don't remove it.
@@ -120,7 +120,13 @@ class InlineEntityForm extends RenderElement {
       $entity_form['#entity'] = $storage->create($values);
     }
     if (!isset($entity_form['#op'])) {
-      $entity_form['#op'] = $entity_form['#entity']->isNew() ? 'add' : 'edit';
+      // When duplicating entities, the entity is new, but already has a UUID.
+      if ($entity_form['#entity']->isNew() && $entity_form['#entity']->uuid()) {
+        $entity_form['#op'] = 'duplicate';
+      }
+      else {
+        $entity_form['#op'] = $entity_form['#entity']->isNew() ? 'add' : 'edit';
+      }
     }
     // Prepare the entity form and the entity itself for translating.
     $entity_form['#entity'] = TranslationHelper::prepareEntity($entity_form['#entity'], $form_state);
