@@ -70,10 +70,14 @@ function inline_entity_form_theme() {
 function inline_entity_form_reference_form($reference_form, &$form_state) {
   $labels = $reference_form['#ief_labels'];
   $ief_id = $reference_form['#ief_id'];
+  $selection_settings = [
+    'match_operator' => $reference_form['#match_operator'],
+  ] + $instance->getSetting('handler_settings');
   /** @var \Drupal\field\Entity\FieldConfig $instance */
   $instance = $form_state->get(['inline_entity_form', $ief_id, 'instance']);
 
   $reference_form['#title'] = t('Add existing @type_singular', ['@type_singular' => $labels['singular']]);
+
   $reference_form['entity_id'] = [
     '#type' => 'entity_autocomplete',
     // @todo Use bundle defined singular/plural labels as soon as
@@ -82,7 +86,7 @@ function inline_entity_form_reference_form($reference_form, &$form_state) {
     '#title' => t('@label', ['@label' => ucfirst($labels['singular'])]),
     '#target_type' => $instance->getSetting('target_type'),
     '#selection_handler' => $instance->getSetting('handler'),
-    '#selection_settings' => $instance->getSetting('handler_settings'),
+    '#selection_settings' => $selection_settings,
     '#required' => TRUE,
     '#maxlength' => 255,
   ];

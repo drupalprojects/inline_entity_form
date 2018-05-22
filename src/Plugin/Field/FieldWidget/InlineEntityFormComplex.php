@@ -505,10 +505,9 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
           // Used by Field API and controller methods to find the relevant
           // values in $form_state.
           '#parents' => array_merge($parents),
-          // Pass the current entity type.
           '#entity_type' => $target_type,
-          // Pass the widget specific labels.
           '#ief_labels' => $this->getEntityTypeLabels(),
+          '#match_operator' => $this->getSetting('match_operator'),
         ];
 
         $element['form'] += inline_entity_form_reference_form($element['form'], $form_state);
