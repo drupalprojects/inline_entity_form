@@ -70,11 +70,11 @@ function inline_entity_form_theme() {
 function inline_entity_form_reference_form($reference_form, &$form_state) {
   $labels = $reference_form['#ief_labels'];
   $ief_id = $reference_form['#ief_id'];
+  /** @var \Drupal\field\Entity\FieldConfig $instance */
+  $instance = $form_state->get(['inline_entity_form', $ief_id, 'instance']);
   $selection_settings = [
     'match_operator' => $reference_form['#match_operator'],
   ] + $instance->getSetting('handler_settings');
-  /** @var \Drupal\field\Entity\FieldConfig $instance */
-  $instance = $form_state->get(['inline_entity_form', $ief_id, 'instance']);
 
   $reference_form['#title'] = t('Add existing @type_singular', ['@type_singular' => $labels['singular']]);
 
